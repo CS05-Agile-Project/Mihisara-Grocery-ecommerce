@@ -194,14 +194,6 @@ This repository contains the source code, documentation, and development resourc
 
 ---
 
-## 📌 Suggested Repository Description
-
-```text
-Agile-based MERN stack e-commerce web application for Mihisara Grocery Store with customer ordering, admin management, inventory, delivery tracking, reports, and AI assistant support.
-```
-
----
-
 ## 📄 License
 
 This project is developed for academic purposes only.
