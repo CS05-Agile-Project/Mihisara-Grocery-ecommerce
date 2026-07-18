@@ -14,7 +14,10 @@ const UserReportsPage = () => {
     // Fetch User Stats based on the view (day/week/month)
     const fetchUserStats = async (view) => {
         try {
-            const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/dashboard/user-enrollment?view=${view}`);
+            const token = localStorage.getItem("token");
+            const { data } = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/dashboard/user-enrollment?view=${view}`, {
+                headers: { Authorization: "Bearer " + token },
+            });
             setUserStats(data);
         } catch (error) {
             console.error("Error fetching user stats:", error);
@@ -24,7 +27,10 @@ const UserReportsPage = () => {
     // Fetch Top Customers Data
     const fetchTopCustomers = async () => {
         try {
-            const { data } = await axios.get(import.meta.env.VITE_BACKEND_URL+"/api/dashboard/top-customers");
+            const token = localStorage.getItem("token");
+            const { data } = await axios.get(import.meta.env.VITE_BACKEND_URL+"/api/dashboard/top-customers", {
+                headers: { Authorization: "Bearer " + token },
+            });
             setTopCustomers(data);
         } catch (error) {
             console.error("Error fetching top customers:", error);

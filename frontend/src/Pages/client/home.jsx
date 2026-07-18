@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ProductsByCategorySlider from "../../components/ProductsByCategorySlider";
-import Footer from "../../components/Footer";
 import Slider from "../../components/Slider";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
     ResponsiveContainer, BarChart, Bar,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend
@@ -21,7 +21,6 @@ export default function BarChartPage() {
                 });
                 if (!r.ok) throw new Error(await r.text());
                 const j = await r.json();
-                console.log("Received series:", j.series);  // Add this line to check the received series
                 setSeries(j.series || []);
             } catch (e) {
                 setErr(e.message);
@@ -31,7 +30,7 @@ export default function BarChartPage() {
     }, []);
 
 
-    // 🌟 Beautiful Loading Screen
+    // ðŸŒŸ Beautiful Loading Screen
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-50">
@@ -42,7 +41,7 @@ export default function BarChartPage() {
                     <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-emerald-500 rounded-full animate-ping -translate-x-1/2 -translate-y-1/2"></div>
                 </div>
                 <p className="mt-6 text-lg font-semibold text-emerald-600">
-                    Loading Bar Chart…
+                    Loading Bar Chartâ€¦
                 </p>
             </div>
         );
@@ -54,7 +53,7 @@ export default function BarChartPage() {
 
     return (
         <main className="p-6 bg-neutral-50 min-h-screen">
-            <h1 className="text-3xl font-extrabold mb-6">Bar Chart – Revenue</h1>
+            <h1 className="text-3xl font-extrabold mb-6">Bar Chart â€“ Revenue</h1>
             <div className="bg-white rounded-xl shadow p-4 h-[500px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={series} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>

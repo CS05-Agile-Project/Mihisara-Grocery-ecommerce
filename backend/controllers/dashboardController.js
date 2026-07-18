@@ -44,9 +44,9 @@ export async function getTopCustomers(req, res) {
 
 export async function getUserRegistrations(req, res) {
   try {
-   // if (!isAdmin(req)) {
-     // return res.status(403).json({ message: "Only admins can view dashboard" });
-   // }
+    if (!isAdmin(req)) {
+      return res.status(403).json({ message: "Only admins can view dashboard" });
+    }
 
     // query params: view = day | week | month
     const view = req.query.view || "day";

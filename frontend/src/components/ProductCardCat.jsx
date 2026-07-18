@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { addToCart } from "../utils/cart";
 
 export default function ProductCardCat({ product }) {
   const {
@@ -33,7 +34,12 @@ export default function ProductCardCat({ product }) {
       ? Math.round(((cleanLabelled - cleanPrice) / cleanLabelled) * 100)
       : null;
 
-  const productKey = _id || productId;
+  const detailKey = _id || productId;
+  const cartProduct = {
+    ...product,
+    productId: productId || _id,
+    images: Array.isArray(images) && images.length > 0 ? images : [derivedImage],
+  };
 
   // Stock badge
   let stockLabel = null;
@@ -71,7 +77,7 @@ export default function ProductCardCat({ product }) {
 
       {/* ✅ Product Image with zoom effect */}
       <Link
-        to={`/product/${productKey}`}
+        to={`/product/${detailKey}`}
         className="flex flex-col items-center w-full"
       >
         <div className="relative overflow-hidden rounded-lg mt-6 mb-3 w-full h-32 flex items-center justify-center">
@@ -107,7 +113,9 @@ export default function ProductCardCat({ product }) {
 
       {/* ✅ Add button */}
       <button
-        disabled
+        type="button"
+        disabled={stock === 0}
+        onClick={() => addToCart(cartProduct, 1)}
         className={`mt-4 flex items-center justify-center gap-1 px-4 py-2 rounded-lg text-sm font-medium 
           transition-all duration-300 transform
           ${

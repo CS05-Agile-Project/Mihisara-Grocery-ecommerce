@@ -1,5 +1,6 @@
 import Product from "../models/product.js";
 import { isAdmin } from "./userController.js";
+import mongoose from "mongoose";
 
 export async function saveProduct(req, res) {
     if (!isAdmin(req)) {
@@ -85,7 +86,14 @@ export async function searchProducts(req, res) {
 
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.productId);
+    const incomingProductId = req.params.productId;
+    const productQuery = [{ productId: incomingProductId }];
+
+    if (mongoose.isValidObjectId(incomingProductId)) {
+      productQuery.push({ _id: incomingProductId });
+    }
+
+    const product = await Product.findOne({ $or: productQuery });
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
     }

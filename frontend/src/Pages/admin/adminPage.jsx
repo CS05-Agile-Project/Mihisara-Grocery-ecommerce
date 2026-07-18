@@ -2,7 +2,22 @@ import { useEffect, useState } from "react";
 import { Navigate, NavLink, Route, Routes, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
-import { FiMenu, FiX, FiUsers, FiBox, FiPlusCircle, FiLogOut } from "react-icons/fi";
+import {
+  FiMenu,
+  FiX,
+  FiUsers,
+  FiBox,
+  FiPlusCircle,
+  FiLogOut,
+  FiShoppingBag,
+  FiTruck,
+  FiHelpCircle,
+  FiStar,
+  FiBarChart2,
+  FiCalendar,
+  FiPieChart,
+  FiActivity,
+} from "react-icons/fi";
 
 import UserPage from "./userPage.jsx";
 import ProductPage from "./productPage.jsx";
@@ -10,6 +25,27 @@ import AddProductPage from "./productAdd.jsx";
 import EditProductPage from "./productsEdit.jsx";
 import AddUserPage from "./userAdd.jsx";
 import EditUserPage from "./usersEdit.jsx";
+import Dashboard from "./Dashboard.jsx";
+import AdminOrdersPage from "./ordersPage.jsx";
+import AdminReviewPage from "./reviewPage.jsx";
+import AdminSupplierPage from "./supplierPage.jsx";
+import AddSupplierPage from "./supplierAdd.jsx";
+import EditSupplierPage from "./supplierEdit.jsx";
+import AdminRiderPage from "./ridersPage.jsx";
+import AddRiderPage from "./riderAdd.jsx";
+import EditRiderPage from "./riderEdit.jsx";
+import AdminDeliveryPage from "./deliveryPage.jsx";
+import AdminFaqPage from "./faqsPage.jsx";
+import AddFaqPage from "./faqAdd.jsx";
+import EditFaqPage from "./faqEdit.jsx";
+import OrderReport from "./orderReports.jsx";
+import UserReportsPage from "./userReport.jsx";
+import ProductAnalysis from "./ProductAnalysis.jsx";
+import CalendarPage from "./CalendarPage.jsx";
+import TopProductsPage from "./charts/TopProductsPage.jsx";
+import PieChartPage from "./charts/PieChartPage.jsx";
+import LineChartPage from "./charts/LineChartPage.jsx";
+import BarChartPage from "./charts/BarChartPage.jsx";
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -127,8 +163,9 @@ export default function AdminPage() {
         <div className="min-h-[calc(100vh-24px)] rounded-xl border border-slate-200 bg-white p-3 md:p-5">
           <Routes>
             {/* NOTE: these are RELATIVE to /admin/* */}
-            <Route path="/" element={<Navigate to="products" replace />} />
+            <Route path="/" element={<Navigate to="dashboard" replace />} />
 
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="users" element={<UserPage />} />
 
             <Route path="products" element={<ProductPage />} />
@@ -139,10 +176,29 @@ export default function AdminPage() {
             <Route path="add-users" element={<AddUserPage />} />
             <Route path="edit-users" element={<EditUserPage />} />
 
-            {/* SPRINT 1 DEMO: orders, reviews, suppliers, riders, delivery, FAQ, reports and dashboards are temporarily disabled. */}
+            <Route path="orders" element={<AdminOrdersPage />} />
+            <Route path="reviews" element={<AdminReviewPage />} />
+            <Route path="suppliers" element={<AdminSupplierPage />} />
+            <Route path="add-suppliers" element={<AddSupplierPage />} />
+            <Route path="edit-suppliers" element={<EditSupplierPage />} />
+            <Route path="riders" element={<AdminRiderPage />} />
+            <Route path="add-riders" element={<AddRiderPage />} />
+            <Route path="edit-riders" element={<EditRiderPage />} />
+            <Route path="delivery" element={<AdminDeliveryPage />} />
+            <Route path="faqs" element={<AdminFaqPage />} />
+            <Route path="add-faqs" element={<AddFaqPage />} />
+            <Route path="edit-faqs" element={<EditFaqPage />} />
+            <Route path="odrp" element={<OrderReport />} />
+            <Route path="user-report" element={<UserReportsPage />} />
+            <Route path="product-analysis" element={<ProductAnalysis />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="top-products" element={<TopProductsPage />} />
+            <Route path="pie-chart" element={<PieChartPage />} />
+            <Route path="line-chart" element={<LineChartPage />} />
+            <Route path="bar-chart" element={<BarChartPage />} />
 
             {/* Optional 404 inside admin */}
-            <Route path="*" element={<Navigate to="/admin/products" replace />} />
+            <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Routes>
 
         </div>
@@ -212,14 +268,34 @@ export default function AdminPage() {
   function NavSections() {
     return (
       <>
-        <SectionTitle>Sprint 1</SectionTitle>
+        <SectionTitle>Main</SectionTitle>
         <Item to="/" icon={<BsShopWindow />} label="Site Home" end />
+        <Item to="/admin/dashboard" icon={<FiActivity />} label="Dashboard" />
         <Item to="/admin/users" icon={<FiUsers />} label="Manage Users" />
         <Item to="/admin/products" icon={<FiBox />} label="Products" />
+        <Item to="/admin/orders" icon={<FiShoppingBag />} label="Orders" />
+        <Item to="/admin/delivery" icon={<FiTruck />} label="Delivery" />
+        <Item to="/admin/suppliers" icon={<BsShopWindow />} label="Suppliers" />
+        <Item to="/admin/riders" icon={<FiTruck />} label="Riders" />
+        <Item to="/admin/reviews" icon={<FiStar />} label="Reviews" />
+        <Item to="/admin/faqs" icon={<FiHelpCircle />} label="FAQs" />
+        <Item to="/admin/calendar" icon={<FiCalendar />} label="Calendar" />
 
         <SectionTitle>Quick Actions</SectionTitle>
         <Item to="/admin/add-product" icon={<FiPlusCircle />} label="Add Product" />
         <Item to="/admin/add-users" icon={<FiPlusCircle />} label="Add Users" />
+        <Item to="/admin/add-suppliers" icon={<FiPlusCircle />} label="Add Supplier" />
+        <Item to="/admin/add-riders" icon={<FiPlusCircle />} label="Add Rider" />
+        <Item to="/admin/add-faqs" icon={<FiPlusCircle />} label="Add FAQ" />
+
+        <SectionTitle>Reports</SectionTitle>
+        <Item to="/admin/odrp" icon={<FiBarChart2 />} label="Order Reports" />
+        <Item to="/admin/user-report" icon={<FiUsers />} label="User Reports" />
+        <Item to="/admin/product-analysis" icon={<FiPieChart />} label="Product Analysis" />
+        <Item to="/admin/top-products" icon={<FiBarChart2 />} label="Top Products" />
+        <Item to="/admin/pie-chart" icon={<FiPieChart />} label="Category Chart" />
+        <Item to="/admin/line-chart" icon={<FiActivity />} label="Sales Trend" />
+        <Item to="/admin/bar-chart" icon={<FiBarChart2 />} label="Sales Chart" />
       </>
     );
   }

@@ -37,12 +37,18 @@ function PaymentForm() {
 
     const amount = state?.amount || 0;
     const cart = state?.cart || [];
+    const deliveryDetails = state?.deliveryDetails || {};
 
-    const [email, setEmail] = useState("");
-    const [name, setName] = useState("");
+    const [email, setEmail] = useState(deliveryDetails.email || "");
+    const [name, setName] = useState(
+        `${deliveryDetails.firstName || ""} ${deliveryDetails.lastName || ""}`.trim()
+    );
     const [country, setCountry] = useState("Sri Lanka");
     const [clientSecret, setClientSecret] = useState("");
     const [loading, setLoading] = useState(false);
+    const [cardError, setCardError] = useState("");
+
+    const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 
     useEffect(() => {
         if (!amount) return;
@@ -52,18 +58,30 @@ function PaymentForm() {
                 currency: "usd", // Stripe doesn't support LKR directly
             })
             .then((res) => setClientSecret(res.data.clientSecret))
-            .catch(() => toast.error("Failed to initialize payment"));
+            .catch((err) =>
+                toast.error(err?.response?.data?.error || "Failed to initialize payment")
+            );
     }, [amount]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!stripe || !elements) return;
+        if (!email.trim()) return toast.error("Email is required");
+        if (!isValidEmail(email)) return toast.error("Please enter a valid email address");
+        if (!name.trim()) return toast.error("Cardholder name is required");
+        if (!clientSecret) return toast.error("Payment is still initializing. Please try again.");
+        if (cardError) return toast.error(cardError);
+
         setLoading(true);
 
         const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
             payment_method: {
                 card: elements.getElement(CardElement),
-                billing_details: { email, name },
+                billing_details: {
+                    email: email.trim(),
+                    name: name.trim(),
+                    address: { country: country === "Sri Lanka" ? "LK" : undefined },
+                },
             },
         });
 
@@ -85,11 +103,12 @@ function PaymentForm() {
                 }
 
                 // ✅ Real checkout data
-                const details = state?.deliveryDetails || {};
+                const details = deliveryDetails;
 
                 // ✅ Create order
                 const orderInformation = {
                     name: `${details.firstName || name} ${details.lastName || ""}`.trim(),
+                    email: email.trim(),
                     phone: details.phone || "",
                     deliveryMethod: details.deliveryMethod || "pickup",
                     address:
@@ -207,10 +226,13 @@ function PaymentForm() {
                             Card Information
                         </label>
                         <div className="border rounded-md p-3 shadow-sm">
-                            <CardElement options={CARD_ELEMENT_OPTIONS} />
+                            <CardElement
+                                options={CARD_ELEMENT_OPTIONS}
+                                onChange={(event) => setCardError(event.error?.message || "")}
+                            />
                         </div>
                         <p className="text-xs text-gray-400 mt-1">
-                            Use test card: 4242 4242 4242 4242
+                            Use test card: 4242 4242 4242 4242, any future date, CVC 123, ZIP 10100
                         </p>
                     </div>
 
@@ -251,7 +273,7 @@ function PaymentForm() {
                         disabled={!stripe || loading}
                         className="w-full mt-6 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-lg shadow-lg transition"
                     >
-                        {loading ? "Processing..." : `Pay $${amount.toFixed(2)}`}
+                        {loading ? "Processing..." : `Pay LKR ${amount.toFixed(2)}`}
                     </button>
                 </form>
             </div>

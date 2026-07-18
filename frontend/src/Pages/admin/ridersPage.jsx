@@ -1,9 +1,9 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState, Fragment } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaEdit, FaPlay, FaStop, FaTrash } from "react-icons/fa";
 import { FiFilter, FiRefreshCw, FiPlus, FiDownload } from "react-icons/fi";
 import { Dialog, Transition } from "@headlessui/react";
 import {
@@ -96,9 +96,8 @@ export default function AdminRiderPage() {
                     streetViewControl: false,
                 });
                 setMap(m);
-                console.log("✅ Google Map initialized successfully");
             } catch (err) {
-                console.error("❌ Failed to init map:", err);
+                console.error("âŒ Failed to init map:", err);
             }
         };
 
@@ -121,7 +120,6 @@ export default function AdminRiderPage() {
         }
 
         socket.on("connect", () => {
-            console.log("✅ Connected to socket:", socket.id);
         });
 
         socket.on("riderLocation", (loc) => {
@@ -129,7 +127,7 @@ export default function AdminRiderPage() {
         });
 
         socket.on("disconnect", (reason) => {
-            console.warn("⚠️ Socket disconnected:", reason);
+            console.warn("âš ï¸ Socket disconnected:", reason);
         });
 
         // cleanup listeners without disconnecting socket
@@ -144,7 +142,7 @@ export default function AdminRiderPage() {
     function upsertMarker(loc) {
         if (!map || !window.google || !loc?.lat || !loc?.lng) return;
 
-        // Find rider’s name from riders list if available
+        // Find riderâ€™s name from riders list if available
         const riderName = riders.find(r => r.riderId === loc.riderId)?.Name || loc.riderId;
 
         setMarkers((prev) => {
@@ -187,7 +185,7 @@ export default function AdminRiderPage() {
                 headers: { Authorization: "Bearer " + token },
             })
             .then((res) => {
-                // ✅ Sort riders by riderId in descending order
+                // âœ… Sort riders by riderId in descending order
                 const sorted = Array.isArray(res.data)
                     ? [...res.data].sort((a, b) => b.riderId.localeCompare(a.riderId))
                     : [];
@@ -486,15 +484,17 @@ export default function AdminRiderPage() {
                                                 onClick={() => startTracking(r)}
                                                 className="p-2 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-600"
                                                 title="Start Tracking (copy link)"
+                                                aria-label="Start tracking"
                                             >
-                                                ▶
+                                                <FaPlay size={14} />
                                             </button>
                                             <button
                                                 onClick={() => stopTracking(r)}
                                                 className="p-2 rounded-full bg-amber-50 hover:bg-amber-100 text-amber-600"
                                                 title="Stop Tracking"
+                                                aria-label="Stop tracking"
                                             >
-                                                ⏹
+                                                <FaStop size={14} />
                                             </button>
 
                                             <button
@@ -529,7 +529,10 @@ export default function AdminRiderPage() {
                         disabled={page === 1}
                         className="px-3 py-1 rounded-lg border bg-white text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
                     >
-                        ← Previous
+                        <span className="inline-flex items-center gap-2">
+                            <FaChevronLeft size={12} />
+                            Previous
+                        </span>
                     </button>
                     <span className="text-sm text-slate-600">
       Page {page} of {Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))}
@@ -543,7 +546,10 @@ export default function AdminRiderPage() {
                         disabled={page >= Math.ceil(filtered.length / PAGE_SIZE)}
                         className="px-3 py-1 rounded-lg border bg-white text-sm text-slate-700 hover:bg-slate-100 disabled:opacity-50"
                     >
-                        Next →
+                        <span className="inline-flex items-center gap-2">
+                            Next
+                            <FaChevronRight size={12} />
+                        </span>
                     </button>
                 </div>
             </div>

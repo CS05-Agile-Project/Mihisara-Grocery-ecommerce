@@ -139,7 +139,7 @@ export default function ProfilePage() {
     };
 
     const handleForgotPassword = () => {
-        window.location.href = "/forget";
+        window.location.href = "/forgot-password";
     };
 
     const handleLogout = () => {

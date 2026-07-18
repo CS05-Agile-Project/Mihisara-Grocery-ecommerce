@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaChartLine, FaEdit, FaTrash } from "react-icons/fa";
 import { FiBell, FiCheckCircle } from "react-icons/fi";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -356,12 +356,21 @@ export default function ProductPage() {
           </div>
         </div>
 
-        <Link
-          to="/admin/add-product"
-          className="bg-dgreen hover:bg-dgreen/80 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition"
-        >
-          + Add Product
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            to="/admin/product-analysis"
+            className="inline-flex items-center gap-2 bg-white border border-dgreen text-dgreen hover:bg-emerald-50 font-bold py-2 px-5 rounded-lg shadow-sm transition"
+          >
+            <FaChartLine />
+            Product Report
+          </Link>
+          <Link
+            to="/admin/add-product"
+            className="bg-dgreen hover:bg-dgreen/80 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition"
+          >
+            + Add Product
+          </Link>
+        </div>
       </div>
 
       {/* ✅ Responsive Table Wrapper */}
@@ -502,7 +511,6 @@ export default function ProductPage() {
         </div>
       )}
 
-      {/* SPRINT 1 DEMO: product reporting is temporarily hidden. */}
     </div>
   );
 }

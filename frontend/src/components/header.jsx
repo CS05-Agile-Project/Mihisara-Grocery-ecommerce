@@ -5,12 +5,21 @@ import { RxAvatar } from "react-icons/rx";
 import { useState, useEffect } from "react";
 import GroceryMegaMenu from "./CategoryMenu.jsx";
 import { jwtDecode } from "jwt-decode";
+import { getCart } from "../utils/cart";
+
+function getCartCount() {
+    return getCart().reduce(
+        (total, item) => total + Number(item.quantity ?? item.qty ?? 1),
+        0
+    );
+}
 
 export default function Header() {
     const navigate = useNavigate();
     const [firstName, setFirstName] = useState("");
     const [token, setToken] = useState(localStorage.getItem("token"));
     const [searchTerm, setSearchTerm] = useState("");
+    const [cartCount, setCartCount] = useState(getCartCount());
     const [menuOpen, setMenuOpen] = useState(false); // ✅ mobile nav toggle
     const [showSearch, setShowSearch] = useState(false); // ✅ mobile search toggle
 
@@ -30,6 +39,18 @@ export default function Header() {
             window.removeEventListener("storage", tokenHandler);
         };
     }, [token]);
+
+    useEffect(() => {
+        const updateCartCount = () => setCartCount(getCartCount());
+
+        window.addEventListener("cart-changed", updateCartCount);
+        window.addEventListener("storage", updateCartCount);
+
+        return () => {
+            window.removeEventListener("cart-changed", updateCartCount);
+            window.removeEventListener("storage", updateCartCount);
+        };
+    }, []);
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -52,8 +73,8 @@ export default function Header() {
             {/* 🔹 Main Header */}
             <div className="flex items-center justify-between py-4 px-4 sm:px-6 bg-white">
                 {/* Logo */}
-                <NavLink to="/" className="flex items-center">
-                    <img src="/logo123.png" alt="Mihisara Grocery" className="h-12 sm:h-14 w-auto object-contain" />
+                <NavLink to="/" className="flex items-center ml-3 sm:ml-5">
+                    <img src="/logo123.png" alt="Mihisara Grocery" className="h-14 sm:h-16 w-auto object-contain" />
                 </NavLink>
 
                 {/* Desktop Search */}
@@ -86,8 +107,17 @@ export default function Header() {
                         <FiSearch size={20} />
                     </button>
 
-                    <button type="button" className="relative flex items-center gap-1 hover:text-green-600">
+                    <button
+                        type="button"
+                        className="relative flex items-center gap-1 hover:text-green-600"
+                        onClick={() => navigate("/cart")}
+                    >
                         <BsCart3 size={22} />
+                        {cartCount > 0 && (
+                            <span className="absolute -top-2 -right-3 min-w-5 h-5 rounded-full bg-emerald-600 px-1 text-[11px] font-bold leading-5 text-white shadow">
+                                {cartCount > 99 ? "99+" : cartCount}
+                            </span>
+                        )}
                         <span className="hidden sm:inline">Cart</span>
                     </button>
 
@@ -147,21 +177,21 @@ export default function Header() {
                     {/* Left side */}
                     <div className="flex items-center gap-8">
                         <GroceryMegaMenu />
-                        <button type="button" className="relative font-semibold text-gray-700 hover:text-emerald-600">
+                        <NavLink to="/hot-deals" className={navLinkClasses}>
                             Hot Deals
-                        </button>
+                        </NavLink>
                         <NavLink to="/" className={navLinkClasses}>
                             Home
                         </NavLink>
                         <NavLink to="/category/All" className={navLinkClasses}>
                             Shop
                         </NavLink>
-                        <button type="button" className="relative font-semibold text-gray-700 hover:text-emerald-600">
+                        <NavLink to="/about" className={navLinkClasses}>
                             About
-                        </button>
-                        <button type="button" className="relative font-semibold text-gray-700 hover:text-emerald-600">
+                        </NavLink>
+                        <NavLink to="/contact" className={navLinkClasses}>
                             Contact
-                        </button>
+                        </NavLink>
                     </div>
 
                     {/* Right side */}
@@ -173,15 +203,21 @@ export default function Header() {
                 <div className="md:hidden bg-white border-t border-gray-200 shadow-inner">
                     <nav className="flex flex-col px-6 py-4 space-y-3 text-gray-800">
                         <GroceryMegaMenu />
-                        <button type="button" className="text-left font-semibold hover:text-emerald-600">Hot Deals</button>
+                        <NavLink to="/hot-deals" className={navLinkClasses} onClick={() => setMenuOpen(false)}>
+                            Hot Deals
+                        </NavLink>
                         <NavLink to="/" className={navLinkClasses} onClick={() => setMenuOpen(false)}>
                             Home
                         </NavLink>
                         <NavLink to="/category/All" className={navLinkClasses} onClick={() => setMenuOpen(false)}>
                             Shop
                         </NavLink>
-                        <button type="button" className="text-left font-semibold hover:text-emerald-600">About</button>
-                        <button type="button" className="text-left font-semibold hover:text-emerald-600">Contact</button>
+                        <NavLink to="/about" className={navLinkClasses} onClick={() => setMenuOpen(false)}>
+                            About
+                        </NavLink>
+                        <NavLink to="/contact" className={navLinkClasses} onClick={() => setMenuOpen(false)}>
+                            Contact
+                        </NavLink>
                     </nav>
                 </div>
             )}

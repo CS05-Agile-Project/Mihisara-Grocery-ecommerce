@@ -18,6 +18,7 @@ export default function CheckoutPage() {
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [email, setEmail] = useState("");
     const [phone, setPhone] = useState("");
     const [deliveryMethod, setDeliveryMethod] = useState("pickup");
     const [street, setStreet] = useState("");
@@ -32,6 +33,7 @@ export default function CheckoutPage() {
     const DELIVERY_FEE = 350;
 
     const getQty = (item) => Number(item.qty ?? item.quantity ?? 0);
+    const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
     const cartTotal = useMemo(
         () => cart.reduce((sum, item) => sum + Number(item.price) * getQty(item), 0),
         [cart]
@@ -48,6 +50,8 @@ export default function CheckoutPage() {
         if (!token) return toast.error("Please login to place order");
         if (!firstName.trim()) return toast.error("First name is required");
         if (!lastName.trim()) return toast.error("Last name is required");
+        if (!email.trim()) return toast.error("Email is required");
+        if (!isValidEmail(email)) return toast.error("Please enter a valid email address");
         if (!/^\d{10}$/.test(phone.trim()))
             return toast.error("Phone number must be exactly 10 digits");
 
@@ -60,6 +64,7 @@ export default function CheckoutPage() {
 
         const orderInformation = {
             name: `${firstName} ${lastName}`.trim(),
+            email: email.trim(),
             phone: phone.trim(),
             deliveryMethod,
             address: `${street} ${city} ${province}`.trim(),
@@ -127,7 +132,7 @@ export default function CheckoutPage() {
             <div className="mx-auto w-full max-w-6xl px-4 py-10">
                 {/* Header */}
                 <p className="text-xs text-gray-500">
-                    <Link to="/" className="hover:underline">Shopping Cart</Link>{" "}
+                    <Link to="/cart" className="hover:underline">Shopping Cart</Link>{" "}
                     / <span className="text-gray-700">Checkout</span>
                 </p>
                 <h1 className="text-left text-4xl font-bold">Checkout</h1>
@@ -241,6 +246,11 @@ export default function CheckoutPage() {
                                             type="email"
                                             className="w-full rounded-lg border border-gray-300 p-3 text-sm shadow-sm outline-none focus:border-black"
                                             placeholder="you@example.com"
+                                            value={email}
+                                            required
+                                            inputMode="email"
+                                            autoComplete="email"
+                                            onChange={(e) => setEmail(e.target.value)}
                                         />
                                         <input
                                             type="tel"
@@ -290,7 +300,11 @@ export default function CheckoutPage() {
                                             type="email"
                                             className="w-full rounded-lg border border-gray-300 p-3 text-sm shadow-sm outline-none focus:border-black"
                                             placeholder="you@example.com"
+                                            value={email}
                                             required
+                                            inputMode="email"
+                                            autoComplete="email"
+                                            onChange={(e) => setEmail(e.target.value)}
                                         />
                                         <input
                                             type="tel"
@@ -386,14 +400,6 @@ export default function CheckoutPage() {
                                     </div>
                                 </label>
 
-                                {/* PayPal (Coming soon) */}
-                                <label className="flex cursor-not-allowed items-start gap-3 opacity-50">
-                                    <input type="radio" name="payment" disabled className="mt-1 h-4 w-4" />
-                                    <div>
-                                        <div className="font-medium">PayPal</div>
-                                        <p className="mt-1 text-gray-600">(Coming soon)</p>
-                                    </div>
-                                </label>
                             </div>
 
                             {/* ✅ Terms & Conditions */}
@@ -429,6 +435,8 @@ export default function CheckoutPage() {
                                     // ✅ Common validation (same as COD)
                                     if (!firstName.trim()) return toast.error("First name is required");
                                     if (!lastName.trim()) return toast.error("Last name is required");
+                                    if (!email.trim()) return toast.error("Email is required");
+                                    if (!isValidEmail(email)) return toast.error("Please enter a valid email address");
                                     if (!/^\d{10}$/.test(phone.trim()))
                                         return toast.error("Phone number must be exactly 10 digits");
 
@@ -449,6 +457,7 @@ export default function CheckoutPage() {
                                                 deliveryDetails: {
                                                     firstName,
                                                     lastName,
+                                                    email: email.trim(),
                                                     phone,
                                                     deliveryMethod,
                                                     street,

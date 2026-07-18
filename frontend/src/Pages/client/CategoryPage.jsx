@@ -16,7 +16,7 @@ const categories = [
     "Baby Care", "Canned & Packaged Food", "Frozen Foods", "Pet Supplies", "Offers"
 ];
 
-export default function CategoryPage({ category }) {
+export default function CategoryPage({ category, hotDealsOnly = false }) {
     const [allProducts, setAllProducts] = useState([]);
     const [filtered, setFiltered] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(category || "All");
@@ -54,6 +54,10 @@ export default function CategoryPage({ category }) {
             );
         }
 
+        if (hotDealsOnly) {
+            result = result.filter((p) => Number(p.labelledPrice || 0) > Number(p.price || 0));
+        }
+
         if (stockFilter === "Low Stock")
             result = result.filter((p) => p.stock > 0 && p.stock < 10);
         else if (stockFilter === "Out of Stock")
@@ -81,7 +85,7 @@ export default function CategoryPage({ category }) {
 
         setFiltered(result);
         setPage(1);
-    }, [allProducts, selectedCategory, stockFilter, searchQuery, priceRange, sort]);
+    }, [allProducts, selectedCategory, stockFilter, searchQuery, priceRange, sort, hotDealsOnly]);
 
     const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
     const pagedProducts = filtered.slice((page - 1) * pageSize, page * pageSize);
@@ -196,7 +200,9 @@ export default function CategoryPage({ category }) {
                             <span className="font-semibold">{pagedProducts.length}</span>{" "}
                             from{" "}
                             <span className="font-semibold">{filtered.length}</span>{" "}
-                            {selectedCategory === "All"
+                            {hotDealsOnly
+                                ? "hot deals"
+                                : selectedCategory === "All"
                                 ? "total products"
                                 : `in ${capitalizeWords(selectedCategory)}`}
                         </h2>

@@ -24,7 +24,6 @@ export default function ForgetPasswordPage() {
         e?.preventDefault();
         if (!email) return toast.error("Please enter your email.");
         setLoading(true);
-        console.log("Backend URL is:", import.meta.env.VITE_BACKEND_URL);
 
         try {
             await axios.post(

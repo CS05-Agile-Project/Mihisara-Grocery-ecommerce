@@ -127,11 +127,37 @@ export function getUser(req, res) {
     });
   }
   res.json({
-    id: req.user.id,
+    userId: req.user.userId,
     email: req.user.email,
     role: req.user.role,
-    name: req.user.name,  
+    firstName: req.user.firstName,
+    lastName: req.user.lastName,
+    name: `${req.user.firstName || ""} ${req.user.lastName || ""}`.trim(),
   });
+}
+
+export async function getUserById(req, res) {
+  try {
+    if (!isAdmin(req)) {
+      return res.status(403).json({ message: "Only admins can view user details" });
+    }
+
+    const user = await User.findOne(
+      { userId: String(req.params.userId || "").trim().toUpperCase() },
+      { password: 0 }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json(user);
+  } catch (err) {
+    return res.status(500).json({
+      message: "Failed to load user",
+      error: err.message,
+    });
+  }
 }
 
 
@@ -307,7 +333,6 @@ export async function resetPassword(req,res){
     const otp  = req.body.otp
     const email = req.body.email
     const newPassword = req.body.newPassword
-    console.log(otp)
     const response = await OTP.findOne({
         email : email
     })
@@ -324,10 +349,9 @@ export async function resetPassword(req,res){
                 email: email
             }
         )
-        console.log(newPassword)
 
         const hashedPassword = bcrypt.hashSync(newPassword, 10)
-        const response2 = await User.updateOne(
+        await User.updateOne(
             {email : email},
             {
                 password : hashedPassword
@@ -430,8 +454,6 @@ export async function loginWithGoogle(req,res){
         }
     })
 
-    console.log(response.data);
-
     const user = await User.findOne({
         email: response.data.email
     })
@@ -460,6 +482,7 @@ export async function loginWithGoogle(req,res){
         await newUser.save();
         const token = jwt.sign(
             {
+                userId: newUser.userId,
                 email: newUser.email,
                 firstName: newUser.firstName,
                 lastName: newUser.lastName,
@@ -480,6 +503,7 @@ export async function loginWithGoogle(req,res){
 
         const token = jwt.sign(
             {
+                userId: user.userId,
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,

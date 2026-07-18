@@ -1,90 +1,98 @@
+import "./loadEnv.js";
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import bodyParser from "body-parser";
 import jwt from "jsonwebtoken";
 import http from "http";
-import { Server } from "socket.io";    
+import { Server } from "socket.io";
+
 import userRouter from "./routes/userRouter.js";
 import productRouter from "./routes/productRouter.js";
-// SPRINT 1 DEMO: non-Sprint router imports are temporarily disabled.
-import dotenv from "dotenv";
-dotenv.config();
+import riderRouter from "./routes/riderRouter.js";
+import supplierRouter from "./routes/supplierRouter.js";
+import reviewRouter from "./routes/reviewRouter.js";
+import deliveryRouter from "./routes/deliveryRouter.js";
+import faqRouter from "./routes/faqRouter.js";
+import orderRouter from "./routes/orderRouter.js";
+import dashboardRoutes from "./routes/dashboardRoutes.js";
+import trackingRouter from "./routes/tracking.js";
+import paymentRouter from "./routes/paymentRouter.js";
 
 const app = express();
-const server = http.createServer(app); //  create HTTP server for socket.io
+const server = http.createServer(app);
 
-/* ---------------- Socket.IO setup ---------------- */
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTENDURL, // your React dev server
+    origin: process.env.FRONTENDURL,
     methods: ["GET", "POST"],
     credentials: true,
   },
 });
 
-// attach io to app so controllers can emit events
 app.set("io", io);
 
 io.on("connection", (socket) => {
-  console.log("🔌 Client connected:", socket.id);
+  console.log("Client connected:", socket.id);
 
   socket.on("disconnect", () => {
-    console.log("❌ Client disconnected:", socket.id);
+    console.log("Client disconnected:", socket.id);
   });
 });
 
-/* ---------------- Middlewares ---------------- */
 app.use(
   cors({
-    origin: process.env.FRONTENDURL, // React dev server
-    credentials: true, // allow cookies / headers
+    origin: process.env.FRONTENDURL,
+    credentials: true,
   })
 );
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
   const tokenString = req.header("Authorization");
-  if (tokenString != null) {
-    const token = tokenString.replace("Bearer ", "");
 
-    jwt.verify(token, process.env.JWTKEY, (err, decoded) => {
-      if (decoded != null) {
-        req.user = decoded;
-        next();
-      } else {
-        console.log("invalid token");
-        res.status(403).json({
-          message: "Invalid token",
-        });
-      }
-    });
-  } else {
+  if (!tokenString) {
     next();
+    return;
   }
-});
 
-/* ---------------- Database ---------------- */
-mongoose
-  .connect(
-    process.env.MONGODB_URL
-  )
-  .then(() => console.log("Connected to the database"))
-  .catch((e) => {
-    console.error(e);
-    console.log("❌ Database connection failed");
+  const token = tokenString.replace("Bearer ", "");
+
+  jwt.verify(token, process.env.JWTKEY, (err, decoded) => {
+    if (err || !decoded) {
+      res.status(403).json({ message: "Invalid token" });
+      return;
+    }
+
+    req.user = decoded;
+    next();
   });
-
-app.use("/api/users",userRouter)
-app.use("/api/products",productRouter)  
-// SPRINT 1 DEMO: rider, supplier, review, delivery, FAQ, order, dashboard,
-// tracking and payment APIs are intentionally not registered. Restore their
-// imports and app.use calls after the supervisor demo.
-/* ---------------- Start Server ---------------- */
-const PORT = 5000;
-server.listen(PORT, () => {
-  console.log(`🚀 Server is running on port ${PORT}`);
 });
 
+app.use("/api/users", userRouter);
+app.use("/api/products", productRouter);
+app.use("/api/riders", riderRouter);
+app.use("/api/suppliers", supplierRouter);
+app.use("/api/reviews", reviewRouter);
+app.use("/api/delivery", deliveryRouter);
+app.use("/api/faqs", faqRouter);
+app.use("/api/orders", orderRouter);
+app.use("/api/dashboard", dashboardRoutes);
+app.use("/api/tracking", trackingRouter);
+app.use("/api/payment", paymentRouter);
 
- 
+const PORT = 5000;
+
+mongoose
+  .connect(process.env.MONGODB_URL, { serverSelectionTimeoutMS: 15000 })
+  .then(() => {
+    console.log(`Connected to the ${mongoose.connection.db.databaseName} database`);
+    server.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error(error);
+    console.log("Database connection failed");
+    process.exit(1);
+  });

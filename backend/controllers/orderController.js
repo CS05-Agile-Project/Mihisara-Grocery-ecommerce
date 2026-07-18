@@ -3,6 +3,7 @@ import Product from "../models/product.js";
 import { isAdmin } from "./userController.js";
 import QRCode from "qrcode";  // ✅ QR code generator
 import { sendSMS } from "../utils/sendSMS.js";
+import mongoose from "mongoose";
 
 // ✅ Normalize Sri Lankan numbers (Twilio E.164 format)
 function normalizePhone(number) {
@@ -52,23 +53,28 @@ export async function createOrder(req, res) {
         const products = [];
 
         for (let i = 0; i < orderInfo.products.length; i++) {
-            const item = await Product.findOne({
-                productId: orderInfo.products[i].productId,
-            });
+            const incomingProductId = orderInfo.products[i].productId;
+            const productQuery = [{ productId: incomingProductId }];
+
+            if (mongoose.isValidObjectId(incomingProductId)) {
+                productQuery.push({ _id: incomingProductId });
+            }
+
+            const item = await Product.findOne({ $or: productQuery });
 
             if (!item) {
                 return res.status(404).json({
-                    message: `Product with productId ${orderInfo.products[i].productId} not found`,
+                    message: `Product with productId ${incomingProductId} not found`,
                 });
             }
             if (item.isAvailable === false) {
                 return res.status(404).json({
-                    message: `Product ${orderInfo.products[i].productId} is not available right now!`,
+                    message: `Product ${incomingProductId} is not available right now!`,
                 });
             }
             if (item.stock < orderInfo.products[i].qty) {
                 return res.status(400).json({
-                    message: `Not enough stock for productId ${orderInfo.products[i].productId}`,
+                    message: `Not enough stock for productId ${incomingProductId}`,
                 });
             }
 
@@ -92,7 +98,8 @@ export async function createOrder(req, res) {
         // ✅ Generate QR code ONLY for store pickup
         let qrCodeData = null;
         if ((orderInfo.deliveryMethod || "").toLowerCase() === "pickup") {
-            const qrUrl = `http://localhost:5000/api/orders/verify/${orderId}`;
+            const baseUrl = process.env.BACKENDURL || "http://localhost:5000";
+            const qrUrl = `${baseUrl}/api/orders/verify/${orderId}`;
             qrCodeData = await QRCode.toDataURL(qrUrl);
         }
 
@@ -113,8 +120,14 @@ export async function createOrder(req, res) {
 
         // ✅ decrement stock
         for (const p of orderInfo.products) {
+            const stockQuery = [{ productId: p.productId }];
+
+            if (mongoose.isValidObjectId(p.productId)) {
+                stockQuery.push({ _id: p.productId });
+            }
+
             await Product.updateOne(
-                { productId: p.productId },
+                { $or: stockQuery },
                 { $inc: { stock: -p.qty } }
             );
         }

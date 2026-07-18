@@ -3,11 +3,13 @@ import { NavLink } from "react-router-dom";
 import { FaFacebookF, FaTwitter, FaYoutube } from "react-icons/fa";
 
 export default function Footer() {
+  const openFaq = () => {
+    window.dispatchEvent(new Event("open-faq"));
+  };
+
   return (
     <footer className="bg-gray-100 text-gray-800 mt-0 border-t border-gray-200 font-poppins">
-      {/* Links */}
-      <div className="container mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-3 gap-8">
-        {/* Company Info */}
+      <div className="container mx-auto px-6 py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
         <div className="col-span-2 md:col-span-1">
           <NavLink to="/">
             <img src="/logo123.png" alt="Mihisara Grocery" className="h-14 w-auto object-contain mb-4" />
@@ -20,25 +22,27 @@ export default function Footer() {
           <p className="text-xs text-gray-500">(8.00 a.m to 8.00 p.m daily)</p>
         </div>
 
-        {/* Quick Links */}
         <div>
-          <h5 className="font-semibold mb-3 text-gray-900">Quick Links</h5>
+          <h5 className="font-semibold mb-3 text-gray-900">Useful Links</h5>
           <ul className="space-y-2 text-sm">
             <li>
               <NavLink to="/" className="hover:text-emerald-600">Home</NavLink>
             </li>
             <li>
-              <NavLink to="/category/All" className="hover:text-emerald-600">
-                Shop
-              </NavLink>
+              <NavLink to="/category/All" className="hover:text-emerald-600">Shop</NavLink>
             </li>
             <li>
-              <a href="/profile" className="hover:text-emerald-600">Profile</a>
+              <NavLink to="/hot-deals" className="hover:text-emerald-600">Hot Deals</NavLink>
+            </li>
+            <li>
+              <NavLink to="/profile" className="hover:text-emerald-600">Profile</NavLink>
+            </li>
+            <li>
+              <NavLink to="/cart" className="hover:text-emerald-600">Cart</NavLink>
             </li>
           </ul>
         </div>
 
-        {/* Categories – link each category page */}
         <div>
           <h5 className="font-semibold mb-3 text-gray-900">Categories</h5>
           <ul className="space-y-2 text-sm">
@@ -52,13 +56,44 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* SPRINT 1 DEMO: FAQ, contact, about and policy links are temporarily hidden. */}
+        <div>
+          <h5 className="font-semibold mb-3 text-gray-900">Support</h5>
+          <ul className="space-y-2 text-sm">
+            <li>
+              <NavLink to="/about" className="hover:text-emerald-600">About Us</NavLink>
+            </li>
+            <li>
+              <NavLink to="/contact" className="hover:text-emerald-600">Contact Us</NavLink>
+            </li>
+            <li>
+              <button type="button" onClick={openFaq} className="hover:text-emerald-600">
+                FAQs
+              </button>
+            </li>
+            <li>
+              <NavLink to="/delivery-info" className="hover:text-emerald-600">Delivery Info</NavLink>
+            </li>
+            <li>
+              <NavLink to="/returns" className="hover:text-emerald-600">Returns</NavLink>
+            </li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 className="font-semibold mb-3 text-gray-900">Policies</h5>
+          <ul className="space-y-2 text-sm">
+            <li>
+              <NavLink to="/terms" className="hover:text-emerald-600">Terms & Conditions</NavLink>
+            </li>
+            <li>
+              <NavLink to="/privacy" className="hover:text-emerald-600">Privacy Policy</NavLink>
+            </li>
+          </ul>
+        </div>
       </div>
 
-      {/* Social + Payments */}
       <div className="container mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between border-t border-gray-200">
         <div className="flex gap-4 mb-4 md:mb-0">
-          {/* Facebook */}
           <a
             href="https://www.facebook.com"
             target="_blank"
@@ -68,7 +103,6 @@ export default function Footer() {
             <FaFacebookF />
           </a>
 
-          {/* Twitter / X */}
           <a
             href="https://twitter.com"
             target="_blank"
@@ -78,7 +112,6 @@ export default function Footer() {
             <FaTwitter />
           </a>
 
-          {/* YouTube */}
           <a
             href="https://www.youtube.com"
             rel="noopener noreferrer"
@@ -89,9 +122,13 @@ export default function Footer() {
         </div>
 
         <p className="text-xs text-gray-500">
-          © 2025 Mihisara Grocery. All Rights Reserved
+          (c) 2025 Mihisara Grocery. All Rights Reserved
         </p>
-        {/* SPRINT 1 DEMO: payment branding is temporarily hidden. */}
+
+        <div className="flex items-center gap-3 mt-4 md:mt-0">
+          <img src="/visa.png" alt="Visa" className="h-7 w-auto object-contain" />
+          <img src="/master.png" alt="Mastercard" className="h-7 w-auto object-contain" />
+        </div>
       </div>
     </footer>
   );

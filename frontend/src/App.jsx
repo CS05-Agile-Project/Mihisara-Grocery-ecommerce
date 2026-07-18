@@ -5,6 +5,7 @@ import CR from "./Pages/client/CR.jsx";
 import AdminPage from './Pages/admin/adminPage.jsx';
 import LoginPage from "./Pages/login.jsx";
 import RegisterPage from "./Pages/register.jsx";
+import ForgetPasswordPage from "./Pages/forgetPassword.jsx";
 import {Toaster} from "react-hot-toast";
 import ScrollToTop from "./components/ScrollToTop";
 import {GoogleOAuthProvider} from "@react-oauth/google";
@@ -55,7 +56,7 @@ function App() {
           {/* Auth routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<RegisterPage />} />
-          {/* SPRINT 1 DEMO: payment and password recovery routes are temporarily disabled. */}
+          <Route path="/forgot-password" element={<ForgetPasswordPage />} />
           {/* Admin routes */}
           <Route path="/admin/*" element={<AdminPage />} />
         </Routes>

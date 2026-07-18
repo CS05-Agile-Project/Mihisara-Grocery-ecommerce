@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { addToCart } from "../../utils/cart";
 
 
 export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND_URL }) {
@@ -61,6 +62,7 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
     imageUrl,
 
     categories,
+    stock = 0,
   } = product;
 
   const category = Array.isArray(categories) ? categories[0] : categories;
@@ -211,16 +213,33 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
             </p>
 
             <button
-              disabled
-              className="bg-emerald-500 text-white px-8 py-3 rounded-lg shadow-md text-lg font-medium"
+              type="button"
+              disabled={stock === 0}
+              onClick={() =>
+                addToCart(
+                  {
+                    ...product,
+                    productId: product.productId || product._id,
+                    images: allImages.length > 0 ? allImages : ["/images/placeholder.png"],
+                  },
+                  1
+                )
+              }
+              className={`px-8 py-3 rounded-lg shadow-md text-lg font-medium transition ${
+                stock === 0
+                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-emerald-500 text-white hover:bg-emerald-600"
+              }`}
             >
-              Add to Cart
+              {stock === 0 ? "Out of Stock" : "Add to Cart"}
             </button>
           </div>
 
           {/* Extra info */}
           <div className="mt-10 border-t pt-6 text-sm text-gray-600 space-y-2">
-            {/* SPRINT 1 DEMO: delivery, returns, and payment messaging is temporarily hidden. */}
+            <p>Delivery and store pickup options are available during checkout.</p>
+            <p>Secure online card payment and cash on delivery are supported where available.</p>
+            <p>Returns or refunds can be requested through Mihisara Grocery support for eligible orders.</p>
           </div>
 
         </div>

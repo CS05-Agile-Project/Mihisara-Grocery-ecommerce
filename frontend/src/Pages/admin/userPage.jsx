@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
-import { FaEdit, FaBan, FaUnlock } from "react-icons/fa";
+import { FaEdit, FaBan, FaUnlock, FaChartBar } from "react-icons/fa";
 import { TiTick } from "react-icons/ti";
 
 
@@ -245,15 +245,22 @@ export default function UserPage() {
                     </div>
                 </div>
 
-                <Link
-                    to="/admin/add-users"
-                    className="bg-dgreen hover:bg-dgreen/80 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition"
-                >
-                    + Add User
-                </Link>
+                <div className="flex flex-wrap gap-3">
+                    <Link
+                        to="/admin/user-report"
+                        className="inline-flex items-center gap-2 bg-white border border-dgreen text-dgreen hover:bg-emerald-50 font-bold py-2 px-5 rounded-lg shadow-sm transition"
+                    >
+                        <FaChartBar />
+                        User Report
+                    </Link>
+                    <Link
+                        to="/admin/add-users"
+                        className="bg-dgreen hover:bg-dgreen/80 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition"
+                    >
+                        + Add User
+                    </Link>
+                </div>
             </div>
-
-            {/* SPRINT 1 DEMO: user reporting is temporarily hidden. */}
 
             {isLoading ? (
                 <div className="w-full h-full flex justify-center items-center">

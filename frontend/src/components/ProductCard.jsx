@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { addToCart } from "../utils/cart";
 
 export default function ProductCard(props) {
   const p = props.product ?? props;
@@ -32,6 +33,12 @@ export default function ProductCard(props) {
     cleanLabelled > 0 && cleanPrice > 0
       ? Math.round(((cleanLabelled - cleanPrice) / cleanLabelled) * 100)
       : null;
+
+  const cartProduct = {
+    ...p,
+    productId: p.productId || _id,
+    images: Array.isArray(images) && images.length > 0 ? images : [derivedImage],
+  };
 
   // Stock label
   let stockLabel = null;
@@ -95,12 +102,13 @@ export default function ProductCard(props) {
         <div className="mt-4">
           <button
             type="button"
-            disabled
+            disabled={stock === 0}
+            onClick={() => addToCart(cartProduct, 1)}
             className={`inline-flex h-9 w-9 items-center justify-center rounded-xl border transition-all duration-300
               ${
                 stock === 0
                   ? "bg-gray-200 text-gray-400 cursor-not-allowed"
-                  : "border-gray-200 text-gray-600 shadow-sm"
+                  : "border-gray-200 text-gray-600 shadow-sm hover:bg-emerald-600 hover:text-white hover:border-emerald-600"
               }`}
             aria-label="Add to cart"
           >

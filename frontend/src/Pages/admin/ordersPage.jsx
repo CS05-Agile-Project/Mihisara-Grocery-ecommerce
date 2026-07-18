@@ -1,10 +1,11 @@
-import axios from "axios";
+﻿import axios from "axios";
 import { useEffect, useMemo, useState } from "react";
 import Loading from "../../components/loading";
 import Modal from "react-modal";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { io } from "socket.io-client";
+import toast from "react-hot-toast";
 
 function LoadingScreen() {
     return (
@@ -26,7 +27,7 @@ export default function AdminOrdersPage() {
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
-            alert("Please login first");
+            toast.error("Please login first");
             return;
         }
 
@@ -39,10 +40,7 @@ export default function AdminOrdersPage() {
                 setIsLoading(false);
             })
             .catch((e) => {
-                alert(
-                    "Error fetching orders: " +
-                    (e.response?.data?.message || "Unknown error")
-                );
+                toast.error("Error fetching orders: " + (e.response?.data?.message || "Unknown error"));
                 setIsLoading(false);
             });
     }, []);
@@ -54,11 +52,9 @@ export default function AdminOrdersPage() {
         });
 
         socket.on("connect", () => {
-            console.log("✅ Connected to socket.io server");
         });
 
         socket.on("orderUpdated", (data) => {
-            console.log("📢 Order update received:", data);
 
             // update existing orders
             setOrders((prev) => {
@@ -80,7 +76,7 @@ export default function AdminOrdersPage() {
                             },
                         })
                         .then((res) => setOrders(res.data))
-                        .catch(() => console.warn("⚠️ Failed to refresh orders"));
+                        .catch(() => console.warn("âš ï¸ Failed to refresh orders"));
                 }
                 return updatedOrders;
             });
@@ -112,10 +108,7 @@ export default function AdminOrdersPage() {
                 setActiveOrder({ ...activeOrder, status: newStatus });
             }
         } catch (err) {
-            alert(
-                "Failed to update order status: " +
-                (err.response?.data?.message || err.message)
-            );
+            toast.error("Failed to update order status: " + (err.response?.data?.message || err.message));
         }
     };
 
@@ -151,7 +144,7 @@ export default function AdminOrdersPage() {
         const p = String(paymentStatus || "paid").toLowerCase();
         if (p === "paid") return <Pill tone="green">Paid</Pill>;
         if (p === "unpaid") return <Pill tone="slate">COD</Pill>;
-        return <Pill tone="slate">{paymentStatus || "—"}</Pill>;
+        return <Pill tone="slate">{paymentStatus || "â€”"}</Pill>;
     };
 
     /* ---------------- LOADING SCREEN ---------------- */
@@ -181,17 +174,17 @@ export default function AdminOrdersPage() {
                 <KpiCard
                     title="Track Orders"
                     value={kpis.total}
-                    icon={<span className="text-xl">📦</span>}
+                    icon={<span className="text-xl">ðŸ“¦</span>}
                 />
                 <KpiCard
                     title="Processing"
                     value={kpis.processing}
-                    icon={<span className="text-xl">🚚</span>}
+                    icon={<span className="text-xl">ðŸšš</span>}
                 />
                 <KpiCard
                     title="Delivered"
                     value={kpis.delivered}
-                    icon={<span className="text-xl">✅</span>}
+                    icon={<span className="text-xl">âœ…</span>}
                 />
                 <KpiCard
                     title="Completed Orders"
@@ -200,7 +193,7 @@ export default function AdminOrdersPage() {
                             (o) => String(o.status).toLowerCase() === "completed"
                         ).length
                     }
-                    icon={<span className="text-xl">✔️</span>}
+                    icon={<span className="text-xl">âœ”ï¸</span>}
                 />
             </div>
 
