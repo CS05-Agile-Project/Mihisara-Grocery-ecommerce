@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import ProductsByCategorySlider from "../../components/ProductsByCategorySlider";
 import Slider from "../../components/Slider";
@@ -41,7 +41,7 @@ const cardVariant = {
 export default function HomePage() {
     const location = useLocation();
     const navigate = useNavigate();
-    const [showAll, setShowAll] = useState(false); // ✅ just toggles more rows
+    const [showAll, setShowAll] = useState(false); //  just toggles more rows
     const prefersReducedMotion = useReducedMotion();
 
     useEffect(() => {
@@ -278,3 +278,4 @@ function PromoTile({ title, subtitle, bgImg, category }) {
         </motion.div>
     );
 }
+

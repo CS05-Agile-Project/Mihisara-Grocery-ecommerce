@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { addToCart } from "../../utils/cart";
@@ -52,7 +52,7 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
   if (!product) return <p className="p-8 text-gray-600">Product not found</p>;
 
   const {
-    productId, // 👈 use this instead of _id
+    productId, //  use this instead of _id
 
     name,
     price,
@@ -95,7 +95,7 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
 
   return (
     <main className="container mx-auto px-6 py-10 font-poppins">
-      {/* ✅ Breadcrumb */}
+      {/*  Breadcrumb */}
       <nav className="text-sm mb-6 flex items-center space-x-2">
         <Link to="/" className="text-accent font-medium hover:underline">
           Home
@@ -103,7 +103,7 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
 
         {category && (
           <>
-            <span className="text-gray-400">›</span>
+            <span className="text-gray-400"></span>
             <Link
               to={`/category/${category.toLowerCase().replace(/\s+/g, "-")}`}
 
@@ -116,12 +116,12 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
         )}
 
 
-        <span className="text-gray-400">›</span>
+        <span className="text-gray-400"></span>
         <span className="text-gray-700">{name}</span>
       </nav>
 
 
-      {/* ✅ Layout */}
+      {/*  Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
         {/* Left side: big image with prev/next */}
         <div className="flex flex-col items-center">
@@ -160,7 +160,7 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
             )}
           </div>
 
-          {/* ✅ Thumbnails */}
+          {/*  Thumbnails */}
           {allImages.length > 1 && (
             <div className="flex gap-3 mt-4 overflow-x-auto">
               {allImages.map((img, i) => (
@@ -188,14 +188,14 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
         <div className="flex flex-col justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">{name}</h1>
-            {/* ✅ Show productId from DB */}
+            {/*  Show productId from DB */}
             {productId && (
               <p className="text-sm text-gray-500 mb-4">
                 Product ID: {productId}
               </p>
             )}
 
-            {/* ✅ Price Section */}
+            {/*  Price Section */}
             <div className="flex items-center gap-3 mb-6">
               <span className="text-emerald-600 text-2xl font-bold">
                 Rs {cleanPrice.toFixed(2)}
@@ -207,7 +207,7 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
               )}
             </div>
 
-            {/* ✅ Description */}
+            {/*  Description */}
             <p className="text-gray-700 mb-6 leading-relaxed text-lg">
               {description || "No description available."}
             </p>
@@ -247,3 +247,4 @@ export default function ProductOverview({ apiBase = import.meta.env.VITE_BACKEND
     </main>
   );
 }
+

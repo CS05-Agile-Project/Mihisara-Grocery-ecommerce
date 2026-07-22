@@ -97,7 +97,7 @@ export default function AdminRiderPage() {
                 });
                 setMap(m);
             } catch (err) {
-                console.error("âŒ Failed to init map:", err);
+                console.error("Failed to init map:", err);
             }
         };
 
@@ -127,7 +127,7 @@ export default function AdminRiderPage() {
         });
 
         socket.on("disconnect", (reason) => {
-            console.warn("âš ï¸ Socket disconnected:", reason);
+            console.warn("Socket disconnected:", reason);
         });
 
         // cleanup listeners without disconnecting socket
@@ -142,7 +142,7 @@ export default function AdminRiderPage() {
     function upsertMarker(loc) {
         if (!map || !window.google || !loc?.lat || !loc?.lng) return;
 
-        // Find riderâ€™s name from riders list if available
+        // Find rider's name from riders list if available
         const riderName = riders.find(r => r.riderId === loc.riderId)?.Name || loc.riderId;
 
         setMarkers((prev) => {
@@ -185,7 +185,7 @@ export default function AdminRiderPage() {
                 headers: { Authorization: "Bearer " + token },
             })
             .then((res) => {
-                // âœ… Sort riders by riderId in descending order
+                // Sort riders by riderId in descending order
                 const sorted = Array.isArray(res.data)
                     ? [...res.data].sort((a, b) => b.riderId.localeCompare(a.riderId))
                     : [];

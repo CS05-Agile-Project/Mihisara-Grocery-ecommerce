@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, BarChart, Bar } from "recharts";
 import { FiDownload } from "react-icons/fi";
 import axios from "axios";
@@ -60,7 +60,7 @@ const UserReportsPage = () => {
             });
             doc.addImage(logo, "PNG", 15, 10, 40, 20);
         } catch (err) {
-            console.warn("⚠ Logo failed to load, skipping image:", err);
+            console.warn(" Logo failed to load, skipping image:", err);
         }
 
 
@@ -174,3 +174,4 @@ const UserReportsPage = () => {
 };
 
 export default UserReportsPage;
+

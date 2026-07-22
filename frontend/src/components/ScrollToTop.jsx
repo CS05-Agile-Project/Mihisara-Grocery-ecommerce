@@ -1,4 +1,4 @@
-// ScrollToTop.jsx
+﻿// ScrollToTop.jsx
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
@@ -14,5 +14,6 @@ export default function ScrollToTop() {
     window.scrollTo({ top: 0, behavior: "instant" }); // or "smooth" if you like
   }, [pathname]);
 
-  return null; // It doesn’t render anything visible
+  return null; // It doesnt render anything visible
 }
+

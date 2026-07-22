@@ -1,4 +1,4 @@
-
+﻿
 import './App.css'
 import {BrowserRouter, Route, Routes} from "react-router-dom";
 import CR from "./Pages/client/CR.jsx";
@@ -15,7 +15,7 @@ function App() {
   return (
       <GoogleOAuthProvider clientId="932522795625-37a6btc2f1i50g4eva3eg69f1nft5dsi.apps.googleusercontent.com">
     <BrowserRouter>
-      {/* 👇 ensures every route change scrolls to top */}
+      {/*  ensures every route change scrolls to top */}
       <ScrollToTop />
 
       <div>
@@ -67,3 +67,4 @@ function App() {
 }
 
 export default App
+

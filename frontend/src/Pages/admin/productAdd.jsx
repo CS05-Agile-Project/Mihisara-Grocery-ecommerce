@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -88,7 +88,7 @@ export default function AddProductPage() {
       const payload = {
         productId: productId.trim(),
         name: name.trim(),
-        categories: [category], // ✅ backend expects array; single category
+        categories: [category], //  backend expects array; single category
         description: description.trim(),
         images: imageUrls,
         labelledPrice: Number(labelledPrice) || 0,
@@ -100,7 +100,7 @@ export default function AddProductPage() {
         headers: { Authorization: "Bearer " + token },
       });
 
-      toast.success("✅ Product added successfully!");
+      toast.success(" Product added successfully!");
       navigate("/admin/products");
     } catch (e) {
       console.error(e);
@@ -230,7 +230,7 @@ export default function AddProductPage() {
                                 className="absolute -top-2 -right-2 h-6 w-6 rounded-full bg-red-500 text-white text-xs grid place-items-center"
                                 title="Remove"
                             >
-                              ✕
+                              
                             </button>
                           </div>
                       ))}
@@ -351,3 +351,4 @@ function SelectField({ label, value, onChange, options = [], placeholder = "Sele
       </div>
   );
 }
+

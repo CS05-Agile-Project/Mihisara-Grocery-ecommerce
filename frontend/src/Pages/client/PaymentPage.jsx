@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import {
     Elements,
@@ -92,7 +92,7 @@ function PaymentForm() {
         }
 
         if (paymentIntent.status === "succeeded") {
-            toast.success("✅ Payment successful!");
+            toast.success("Payment successful!");
 
             try {
                 const token = localStorage.getItem("token");
@@ -102,10 +102,10 @@ function PaymentForm() {
                     return;
                 }
 
-                // ✅ Real checkout data
+                //  Real checkout data
                 const details = deliveryDetails;
 
-                // ✅ Create order
+                //  Create order
                 const orderInformation = {
                     name: `${details.firstName || name} ${details.lastName || ""}`.trim(),
                     email: email.trim(),
@@ -131,16 +131,16 @@ function PaymentForm() {
                 toast.success("Order placed successfully!");
                 toast.success("QR generated successfully!");
 
-                // ✅ Step 2: Update the payment status to 'paid'
+                //  Step 2: Update the payment status to 'paid'
                 const orderId = orderRes.data.orderId; // backend must return this
                 await axios.put(
                     `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}/payment/paid`,
                     {},
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                toast.success("Payment status updated ✅");
+                toast.success("Payment status updated");
 
-                // ✅ If home delivery, create delivery record too
+                //  If home delivery, create delivery record too
                 if (details.deliveryMethod === "home") {
                     try {
                         const orderId = orderRes.data.orderId; // backend must return orderId
@@ -149,7 +149,7 @@ function PaymentForm() {
                             { orderId, phone: details.phone },
                             { headers: { Authorization: `Bearer ${token}` } }
                         );
-                        toast.success("Delivery started to process 🚚");
+                        toast.success("Delivery started to process");
                     } catch (deliveryErr) {
                         console.error("Delivery creation failed:", deliveryErr);
                         toast.error("Order placed, but failed to start delivery");
@@ -181,7 +181,7 @@ function PaymentForm() {
                             <div>
                                 <p className="font-medium text-gray-800">{item.name}</p>
                                 <p className="text-xs text-gray-500">
-                                    Qty {item.quantity ?? item.qty} × LKR {item.price}
+                                    Qty {item.quantity ?? item.qty} x LKR {item.price}
                                 </p>
                             </div>
                             <span className="font-semibold text-gray-700">
@@ -288,3 +288,4 @@ export default function PaymentPage() {
         </Elements>
     );
 }
+

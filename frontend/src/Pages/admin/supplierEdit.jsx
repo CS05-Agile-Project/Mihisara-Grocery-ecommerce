@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import toast from "react-hot-toast";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -43,7 +43,7 @@ export default function EditSupplierPage() {
       await axios.put(`${import.meta.env.VITE_BACKEND_URL}/api/suppliers/${supplierId}`, body, {
         headers: { Authorization: "Bearer " + token },
       });
-      toast.success("✅ Supplier updated successfully");
+      toast.success(" Supplier updated successfully");
 
       navigate("/admin/suppliers");
     } catch (e) {
@@ -197,3 +197,4 @@ function NumberField({ label, value, onChange, placeholder, min, step }) {
 
   );
 }
+

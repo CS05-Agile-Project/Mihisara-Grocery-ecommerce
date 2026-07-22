@@ -5,6 +5,7 @@ import { jwtDecode } from "jwt-decode";
 import {
   FiMenu,
   FiX,
+  FiHome,
   FiUsers,
   FiBox,
   FiPlusCircle,
@@ -17,6 +18,7 @@ import {
   FiCalendar,
   FiPieChart,
   FiActivity,
+  FiFileText,
 } from "react-icons/fi";
 
 import UserPage from "./userPage.jsx";
@@ -98,12 +100,13 @@ export default function AdminPage() {
     }
   }, [navigate]);
 
-  const linkBase = "group flex items-center gap-3 px-4 py-2 my-2 rounded-lg transition-colors";
-  const linkIdle = "text-slate-300 hover:bg-white hover:text-accent";
-  const linkActive = "bg-white text-accent";
+  const linkBase =
+    "group flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors";
+  const linkIdle = "text-slate-200/85 hover:bg-white hover:text-accent";
+  const linkActive = "bg-white text-accent shadow-sm";
 
   const SectionTitle = ({ children }) => (
-    <div className="mt-6 mb-2 px-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
+    <div className="mt-6 mb-2 px-4 text-[12px] font-bold uppercase tracking-wide text-[#aeb8ca]">
       {children}
     </div>
   );
@@ -115,8 +118,8 @@ export default function AdminPage() {
       end={end}
       onClick={() => setOpen(false)}
     >
-      <span className="text-lg">{icon}</span>
-      <span className="text-sm">{label}</span>
+      <span className="text-lg leading-none">{icon}</span>
+      <span className="text-[15px] font-medium">{label}</span>
     </NavLink>
   );
 
@@ -140,7 +143,7 @@ export default function AdminPage() {
       </div>
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex md:flex-col fixed inset-y-0 left-0 z-40 w-[280px] bg-green-900/85 text-slate-200 border-r">
+      <aside className="hidden md:flex md:flex-col fixed inset-y-0 left-0 z-40 w-[280px] bg-[#2f714c] text-slate-100 border-r border-[#153927]">
         <SidebarContent me={me} />
       </aside>
 
@@ -148,9 +151,9 @@ export default function AdminPage() {
       {open && (
         <div className="md:hidden">
           <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />
-          <div className="fixed inset-y-0 left-0 z-50 w-[85%] max-w-[320px] bg-slate-900 text-slate-200 border-r border-slate-800 flex flex-col">
+          <div className="fixed inset-y-0 left-0 z-50 w-[85%] max-w-[320px] bg-[#2f714c] text-slate-100 border-r border-[#153927] flex flex-col">
             <HeaderProfile me={me} onClose={() => setOpen(false)} />
-            <nav className="py-4 overflow-y-auto h-[calc(100vh-56px-68px)] scrollbar-dark">
+            <nav className="px-0 py-4 overflow-y-auto h-[calc(100vh-76px-68px)] scrollbar-dark">
               <NavSections />
             </nav>
             <FooterLogout handleLogout={handleLogout} />
@@ -205,8 +208,11 @@ export default function AdminPage() {
       </main>
 
       <style>{`
-        .sidebar-scroll { height: calc(100vh - 56px - 68px); }
-        .scrollbar-dark { scrollbar-width: thin; scrollbar-color: #10b981 #064e3b; }
+        .sidebar-scroll { height: calc(100vh - 76px - 68px); }
+        .scrollbar-dark { scrollbar-width: thin; scrollbar-color: #10b981 #286340; }
+        .scrollbar-dark::-webkit-scrollbar { width: 8px; }
+        .scrollbar-dark::-webkit-scrollbar-track { background: #286340; }
+        .scrollbar-dark::-webkit-scrollbar-thumb { background: #10b981; border-radius: 999px; }
       `}</style>
     </div>
   );
@@ -228,17 +234,17 @@ export default function AdminPage() {
 
   function HeaderProfile({ me, onClose }) {
     return (
-      <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800 font-poppins">
+      <div className="flex h-[76px] items-center justify-between px-4 border-b border-[#153927] font-poppins">
         <div className="flex items-center gap-3">
           <Avatar name={me?.name} />
           <div>
-            <div className="text-sm font-semibold">{me?.name || "Admin"}</div>
-            <div className="text-[11px] text-slate-400">{me?.email || ""}</div>
+            <div className="text-[15px] font-semibold">{me?.name || "Admin"}</div>
+            <div className="text-[12px] text-slate-300">{me?.email || "admin@gmail.com"}</div>
           </div>
         </div>
         <button
           aria-label="Close menu"
-          className="rounded-lg border border-slate-700 p-2 active:scale-95"
+          className="rounded-lg border border-white/20 p-2 active:scale-95"
           onClick={onClose}
         >
           <FiX className="h-5 w-5" />
@@ -250,11 +256,11 @@ export default function AdminPage() {
   function SidebarContent({ me }) {
     return (
       <>
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-800 font-poppins">
+        <div className="flex h-[76px] items-center gap-3 px-4 border-b border-[#153927] font-poppins">
           <Avatar name={me?.name} />
           <div>
-            <div className="text-sm font-semibold">{me?.name || "Admin"}</div>
-            <div className="text-[11px] text-slate-400">{me?.email || ""}</div>
+            <div className="text-[15px] font-semibold">{me?.name || "Admin"}</div>
+            <div className="text-[12px] text-slate-300">{me?.email || "admin@gmail.com"}</div>
           </div>
         </div>
         <nav className="py-4 overflow-y-auto sidebar-scroll scrollbar-dark">
@@ -268,44 +274,50 @@ export default function AdminPage() {
   function NavSections() {
     return (
       <>
-        <SectionTitle>Main</SectionTitle>
+        <SectionTitle>Dashboard</SectionTitle>
+        <Item to="/admin/dashboard" icon={<FiHome />} label="Overview" />
         <Item to="/" icon={<BsShopWindow />} label="Site Home" end />
-        <Item to="/admin/dashboard" icon={<FiActivity />} label="Dashboard" />
+
+        <SectionTitle>Analytics</SectionTitle>
+        <Item to="/admin/product-analysis" icon={<FiPieChart />} label="Financial Summary" />
+
+        <SectionTitle>Data</SectionTitle>
         <Item to="/admin/users" icon={<FiUsers />} label="Manage Users" />
+        <Item to="/admin/orders" icon={<FiShoppingBag />} label="Order Management" />
+
+        <SectionTitle>Pages</SectionTitle>
         <Item to="/admin/products" icon={<FiBox />} label="Products" />
-        <Item to="/admin/orders" icon={<FiShoppingBag />} label="Orders" />
-        <Item to="/admin/delivery" icon={<FiTruck />} label="Delivery" />
-        <Item to="/admin/suppliers" icon={<BsShopWindow />} label="Suppliers" />
-        <Item to="/admin/riders" icon={<FiTruck />} label="Riders" />
         <Item to="/admin/reviews" icon={<FiStar />} label="Reviews" />
-        <Item to="/admin/faqs" icon={<FiHelpCircle />} label="FAQs" />
-        <Item to="/admin/calendar" icon={<FiCalendar />} label="Calendar" />
+        <Item to="/admin/riders" icon={<FiTruck />} label="Riders" />
+        <Item to="/admin/faqs" icon={<FiHelpCircle />} label="FAQ Page" />
+        <Item to="/admin/suppliers" icon={<FiFileText />} label="Suppliers" />
+        <Item to="/admin/delivery" icon={<FiActivity />} label="Delivery" />
 
         <SectionTitle>Quick Actions</SectionTitle>
         <Item to="/admin/add-product" icon={<FiPlusCircle />} label="Add Product" />
-        <Item to="/admin/add-users" icon={<FiPlusCircle />} label="Add Users" />
         <Item to="/admin/add-suppliers" icon={<FiPlusCircle />} label="Add Supplier" />
         <Item to="/admin/add-riders" icon={<FiPlusCircle />} label="Add Rider" />
         <Item to="/admin/add-faqs" icon={<FiPlusCircle />} label="Add FAQ" />
+        <Item to="/admin/add-users" icon={<FiPlusCircle />} label="Add Users" />
 
-        <SectionTitle>Reports</SectionTitle>
-        <Item to="/admin/odrp" icon={<FiBarChart2 />} label="Order Reports" />
-        <Item to="/admin/user-report" icon={<FiUsers />} label="User Reports" />
-        <Item to="/admin/product-analysis" icon={<FiPieChart />} label="Product Analysis" />
+        <SectionTitle>Charts</SectionTitle>
+        <Item to="/admin/bar-chart" icon={<FiBarChart2 />} label="Bar Chart" />
+        <Item to="/admin/pie-chart" icon={<FiPieChart />} label="Pie Chart" />
+        <Item to="/admin/line-chart" icon={<FiActivity />} label="Line Chart" />
         <Item to="/admin/top-products" icon={<FiBarChart2 />} label="Top Products" />
-        <Item to="/admin/pie-chart" icon={<FiPieChart />} label="Category Chart" />
-        <Item to="/admin/line-chart" icon={<FiActivity />} label="Sales Trend" />
-        <Item to="/admin/bar-chart" icon={<FiBarChart2 />} label="Sales Chart" />
+
+        <SectionTitle>Calendar</SectionTitle>
+        <Item to="/admin/calendar" icon={<FiCalendar />} label="Calendar" />
       </>
     );
   }
 
   function FooterLogout({ handleLogout }) {
     return (
-      <div className="mt-auto px-4 py-4 border-t border-slate-800">
+      <div className="mt-auto px-4 py-4 border-t border-[#153927]">
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg bg-white text-slate-800 hover:bg-slate-100 active:scale-[.99]"
+          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-md bg-white text-slate-800 hover:bg-slate-100 active:scale-[.99]"
         >
           <FiLogOut className="text-lg" />
           <span className="text-sm font-medium">Log out</span>

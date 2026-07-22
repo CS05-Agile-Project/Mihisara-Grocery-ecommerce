@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { BiMinus, BiPlus, BiTrash } from "react-icons/bi";
 import { addToCart, addToCartQty, getCart, removeCart } from "../../utils/cart";
@@ -215,7 +215,7 @@ export default function CartPage() {
                         <div className="mt-8 grid gap-4 sm:grid-cols-3">
                             <Feature title="Free Shipping" desc="Free shipping for order above LKR 20,000" />
                             <Feature title="Flexible Payment" desc="Multiple secure payment options" />
-                            <Feature title="24×7 Support" desc="We support online all day." />
+                            <Feature title="247 Support" desc="We support online all day." />
                         </div>
                     </motion.section>
 
@@ -238,7 +238,7 @@ export default function CartPage() {
                                     label="Total Discount"
                                     value={`- LKR : ${discount.toFixed(2)}`}
                                 />
-                                {/* ✅ Shipping row logic */}
+                                {/*  Shipping row logic */}
                                 <SummaryRow
                                     label="Shipping"
                                     value={total > 20000 ? "Free" : "Pending"}
@@ -290,3 +290,4 @@ function Feature({ title, desc }) {
         </div>
     );
 }
+

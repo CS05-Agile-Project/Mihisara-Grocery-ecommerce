@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from "react-router-dom";
+﻿import { NavLink, useNavigate } from "react-router-dom";
 import { FiLogIn, FiSearch, FiMenu, FiX } from "react-icons/fi";
 import { BsCart3 } from "react-icons/bs";
 import { RxAvatar } from "react-icons/rx";
@@ -20,8 +20,8 @@ export default function Header() {
     const [token, setToken] = useState(localStorage.getItem("token"));
     const [searchTerm, setSearchTerm] = useState("");
     const [cartCount, setCartCount] = useState(getCartCount());
-    const [menuOpen, setMenuOpen] = useState(false); // ✅ mobile nav toggle
-    const [showSearch, setShowSearch] = useState(false); // ✅ mobile search toggle
+    const [menuOpen, setMenuOpen] = useState(false); //  mobile nav toggle
+    const [showSearch, setShowSearch] = useState(false); //  mobile search toggle
 
     useEffect(() => {
         const tokenHandler = () => setToken(localStorage.getItem("token"));
@@ -57,7 +57,7 @@ export default function Header() {
         if (searchTerm.trim()) {
             navigate(`/search?query=${encodeURIComponent(searchTerm)}`);
             setSearchTerm("");
-            setShowSearch(false); // ✅ hide search after submit on mobile
+            setShowSearch(false); //  hide search after submit on mobile
         }
     };
 
@@ -70,7 +70,7 @@ export default function Header() {
 
     return (
         <header className="w-full border-b border-gray-200 text-gray-700 font-poppins">
-            {/* 🔹 Main Header */}
+            {/*  Main Header */}
             <div className="flex items-center justify-between py-4 px-4 sm:px-6 bg-white">
                 {/* Logo */}
                 <NavLink to="/" className="flex items-center ml-3 sm:ml-5">
@@ -171,7 +171,7 @@ export default function Header() {
                 </form>
             )}
 
-            {/* 🔹 Bottom Nav (Desktop) */}
+            {/*  Bottom Nav (Desktop) */}
             <div className="hidden md:block w-full border-t border-gray-200 bg-white">
                 <div className="flex items-center justify-between px-6 py-3 text-gray-800 text-[15px]">
                     {/* Left side */}
@@ -198,7 +198,7 @@ export default function Header() {
                 </div>
             </div>
 
-            {/* 🔹 Mobile Nav Drawer */}
+            {/*  Mobile Nav Drawer */}
             {menuOpen && (
                 <div className="md:hidden bg-white border-t border-gray-200 shadow-inner">
                     <nav className="flex flex-col px-6 py-4 space-y-3 text-gray-800">
@@ -224,3 +224,4 @@ export default function Header() {
         </header>
     );
 }
+

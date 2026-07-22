@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
+import { FiCheckCircle, FiClock, FiPackage, FiTruck } from "react-icons/fi";
 
 function LoadingScreen() {
     return (
@@ -76,7 +77,7 @@ export default function AdminOrdersPage() {
                             },
                         })
                         .then((res) => setOrders(res.data))
-                        .catch(() => console.warn("âš ï¸ Failed to refresh orders"));
+                        .catch(() => console.warn("Failed to refresh orders"));
                 }
                 return updatedOrders;
             });
@@ -144,7 +145,7 @@ export default function AdminOrdersPage() {
         const p = String(paymentStatus || "paid").toLowerCase();
         if (p === "paid") return <Pill tone="green">Paid</Pill>;
         if (p === "unpaid") return <Pill tone="slate">COD</Pill>;
-        return <Pill tone="slate">{paymentStatus || "â€”"}</Pill>;
+        return <Pill tone="slate">{paymentStatus || "-"}</Pill>;
     };
 
     /* ---------------- LOADING SCREEN ---------------- */
@@ -174,17 +175,17 @@ export default function AdminOrdersPage() {
                 <KpiCard
                     title="Track Orders"
                     value={kpis.total}
-                    icon={<span className="text-xl">ðŸ“¦</span>}
+                    icon={<FiPackage className="text-xl" />}
                 />
                 <KpiCard
                     title="Processing"
                     value={kpis.processing}
-                    icon={<span className="text-xl">ðŸšš</span>}
+                    icon={<FiClock className="text-xl" />}
                 />
                 <KpiCard
                     title="Delivered"
                     value={kpis.delivered}
-                    icon={<span className="text-xl">âœ…</span>}
+                    icon={<FiTruck className="text-xl" />}
                 />
                 <KpiCard
                     title="Completed Orders"
@@ -193,7 +194,7 @@ export default function AdminOrdersPage() {
                             (o) => String(o.status).toLowerCase() === "completed"
                         ).length
                     }
-                    icon={<span className="text-xl">âœ”ï¸</span>}
+                    icon={<FiCheckCircle className="text-xl" />}
                 />
             </div>
 
@@ -212,128 +213,142 @@ export default function AdminOrdersPage() {
                 <Modal
                     isOpen={isModalOpen}
                     onRequestClose={() => setIsModalOpen(false)}
-                    className="bg-white rounded-lg shadow-lg max-w-3xl mx-auto my-10 p-6 outline-none"
-                    overlayClassName="fixed inset-0 bg-[#00000040] flex justify-center items-center"
+                    bodyOpenClassName="ReactModal__Body--open"
+                    htmlOpenClassName="ReactModal__Html--open"
+                    className="flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl outline-none"
+                    overlayClassName="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/40 p-3 sm:p-6 md:left-[280px]"
                 >
                     {activeOrder && (
-                        <div className="space-y-4">
-                            <h2 className="text-2xl font-bold text-[var(--color-accent)]">
-                                Order Details - {activeOrder.orderId}
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <p><span className="font-semibold">Name:</span> {activeOrder.name}</p>
-                                    <p><span className="font-semibold">Email:</span> {activeOrder.email}</p>
-                                    <p><span className="font-semibold">Phone:</span> {activeOrder.phone}</p>
-                                    <p><span className="font-semibold">Delivery method:</span> {activeOrder.deliveryMethod}</p>
-                                    <p><span className="font-semibold">Address:</span> {activeOrder.address}</p>
-
-                                    {/* QR Code */}
-                                    {String(activeOrder.deliveryMethod).toLowerCase() === "pickup" && (
-                                        <div className="mt-4">
-                                            <span className="font-semibold">Order QR Code:</span>
-                                            <div className="mt-2">
-                                                <QRCodeCanvas
-                                                    value={`${import.meta.env.VITE_BACKEND_URL}/api/orders/verify/${activeOrder.orderId}`}
-                                                    size={160}
-                                                    bgColor="#ffffff"
-                                                    fgColor="#000000"
-                                                    level="H"
-                                                    includeMargin={true}
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <p className="flex items-center gap-2">
-                                        <span className="font-semibold rounded-full">Status:</span>
-                                        <span className="font-bold">{String(activeOrder.status).toUpperCase()}</span>
-                                    </p>
-
-                                    {/* Manual Status Dropdown */}
-                                    <div>
-                                        <label className="font-semibold">Change status:</label>
-                                        <select
-                                            value={activeOrder.status}
-                                            onChange={(e) => handleStatusChange(activeOrder.orderId, e.target.value)}
-                                            className="ml-2 border rounded px-2 py-1 text-sm"
-                                        >
-                                            <option value="pending">Pending</option>
-                                            <option value="processing">Processing</option>
-                                            <option value="completed">Completed</option>
-                                            <option value="delivered">Delivered</option>
-                                            <option value="cancelled">Cancelled</option>
-                                            <option value="returned">Returned</option>
-                                        </select>
-                                    </div>
-
-                                    <p><span className="font-semibold">Date:</span> {new Date(activeOrder.date).toLocaleDateString("en-GB")}</p>
-                                    <p><span className="font-semibold">Total:</span> {activeOrder.total.toLocaleString("en-LK", { style: "currency", currency: "LKR" })}</p>
-                                </div>
+                        <>
+                            <div className="border-b border-slate-200 px-4 py-4 sm:px-6">
+                                <h2 className="break-words text-xl font-bold text-[var(--color-accent)] sm:text-2xl">
+                                    Order Details - {activeOrder.orderId}
+                                </h2>
                             </div>
 
-                            {/* Products Table */}
-                            <h3 className="text-xl font-semibold mt-4">Products</h3>
+                            <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:px-6">
+                                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                    <div className="space-y-2 text-sm sm:text-base">
+                                        <p><span className="font-semibold">Name:</span> {activeOrder.name}</p>
+                                        <p className="break-words"><span className="font-semibold">Email:</span> {activeOrder.email}</p>
+                                        <p><span className="font-semibold">Phone:</span> {activeOrder.phone}</p>
+                                        <p><span className="font-semibold">Delivery method:</span> {activeOrder.deliveryMethod}</p>
+                                        <p className="break-words"><span className="font-semibold">Address:</span> {activeOrder.address}</p>
 
-                            {/* Scrollable Table for Products */}
-                            <div className="overflow-y-auto max-h-64"> {/* Limit the visible height and make it scrollable */}
-                                <table className="w-full text-center border border-gray-200 shadow rounded">
-                                    <thead className="bg-[var(--color-accent)] text-white">
-                                    <tr>
-                                        <th className="py-2 px-2">Image</th>
-                                        <th className="py-2 px-2">Product</th>
-                                        <th className="py-2 px-2">Price</th>
-                                        <th className="py-2 px-2">Quantity</th>
-                                        <th className="py-2 px-2">Subtotal</th>
-                                    </tr>
-                                    </thead>
-                                    <tbody>
-                                    {activeOrder.products.map((item, idx) => (
-                                        <tr
-                                            key={idx}
-                                            className={`${idx % 2 === 0 ? "bg-[var(--color-primary)]" : "bg-gray-100"}`}
-                                        >
-                                            <td className="py-2 px-2">
-                                                <img
-                                                    src={item.productInfo.images[0]}
-                                                    alt={item.productInfo.name}
-                                                    className="w-12 h-12 object-cover rounded"
-                                                />
-                                            </td>
-                                            <td className="py-2 px-2">{item.productInfo.name}</td>
-                                            <td className="py-2 px-2">
-                                                {item.productInfo.price.toLocaleString("en-LK", { style: "currency", currency: "LKR" })}
-                                            </td>
-                                            <td className="py-2 px-2">{item.quantity}</td>
-                                            <td className="py-2 px-2">
-                                                {(item.productInfo.price * item.quantity).toLocaleString("en-LK", { style: "currency", currency: "LKR" })}
-                                            </td>
+                                        {/* QR Code */}
+                                        {String(activeOrder.deliveryMethod).toLowerCase() === "pickup" && (
+                                            <div className="mt-4">
+                                                <span className="font-semibold">Order QR Code:</span>
+                                                <div className="mt-2 w-fit rounded-lg border border-slate-200 bg-white p-2">
+                                                    <QRCodeCanvas
+                                                        value={`${import.meta.env.VITE_BACKEND_URL}/api/orders/verify/${activeOrder.orderId}`}
+                                                        size={150}
+                                                        bgColor="#ffffff"
+                                                        fgColor="#000000"
+                                                        level="H"
+                                                        includeMargin={true}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-3 text-sm sm:text-base">
+                                        <p className="flex flex-wrap items-center gap-2">
+                                            <span className="font-semibold rounded-full">Status:</span>
+                                            <span className="font-bold">{String(activeOrder.status).toUpperCase()}</span>
+                                        </p>
+
+                                        {/* Manual Status Dropdown */}
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                                            <label className="font-semibold">Change status:</label>
+                                            <select
+                                                value={activeOrder.status}
+                                                onChange={(e) => handleStatusChange(activeOrder.orderId, e.target.value)}
+                                                className="w-full rounded border px-2 py-2 text-sm sm:w-auto"
+                                            >
+                                                <option value="pending">Pending</option>
+                                                <option value="processing">Processing</option>
+                                                <option value="completed">Completed</option>
+                                                <option value="delivered">Delivered</option>
+                                                <option value="cancelled">Cancelled</option>
+                                                <option value="returned">Returned</option>
+                                            </select>
+                                        </div>
+
+                                        <p><span className="font-semibold">Date:</span> {new Date(activeOrder.date).toLocaleDateString("en-GB")}</p>
+                                        <p><span className="font-semibold">Total:</span> {activeOrder.total.toLocaleString("en-LK", { style: "currency", currency: "LKR" })}</p>
+                                    </div>
+                                </div>
+
+                                {/* Products Table */}
+                                <h3 className="text-lg font-semibold sm:text-xl">Products</h3>
+
+                                {/* Scrollable Table for Products */}
+                                <div className="max-h-64 overflow-auto rounded-lg border border-gray-200">
+                                    <table className="min-w-[640px] w-full text-center text-sm sm:text-base">
+                                        <thead className="sticky top-0 bg-[var(--color-accent)] text-white">
+                                        <tr>
+                                            <th className="py-2 px-3 text-left">Image</th>
+                                            <th className="py-2 px-3 text-left">Product</th>
+                                            <th className="py-2 px-3">Price</th>
+                                            <th className="py-2 px-3">Quantity</th>
+                                            <th className="py-2 px-3">Subtotal</th>
                                         </tr>
-                                    ))}
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                        {activeOrder.products.map((item, idx) => (
+                                            <tr
+                                                key={idx}
+                                                className={`${idx % 2 === 0 ? "bg-white" : "bg-gray-50"}`}
+                                            >
+                                                <td className="py-2 px-3">
+                                                    <img
+                                                        src={item.productInfo.images[0]}
+                                                        alt={item.productInfo.name}
+                                                        className="h-12 w-12 rounded object-cover"
+                                                    />
+                                                </td>
+                                                <td className="py-2 px-3 text-left">{item.productInfo.name}</td>
+                                                <td className="py-2 px-3 whitespace-nowrap">
+                                                    {item.productInfo.price.toLocaleString("en-LK", { style: "currency", currency: "LKR" })}
+                                                </td>
+                                                <td className="py-2 px-3">{item.quantity}</td>
+                                                <td className="py-2 px-3 whitespace-nowrap">
+                                                    {(item.productInfo.price * item.quantity).toLocaleString("en-LK", { style: "currency", currency: "LKR" })}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
 
                             {/* Modal Actions */}
-                            <div className="flex justify-end gap-2">
+                            <div className="flex flex-col-reverse gap-2 border-t border-slate-200 bg-white px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
                                 <button
                                     onClick={() => setIsModalOpen(false)}
-                                    className="mt-4 px-4 py-2 rounded bg-slate-700 text-white hover:bg-slate-800 transition"
+                                    className="rounded bg-slate-700 px-4 py-2 text-white transition hover:bg-slate-800"
                                 >
                                     Close
                                 </button>
                                 <button
                                     onClick={() => window.print()}
-                                    className="mt-4 px-4 py-2 rounded bg-[var(--color-accent)] text-white hover:bg-[var(--color-secondary)] transition"
+                                    className="rounded bg-[var(--color-accent)] px-4 py-2 text-white transition hover:bg-[var(--color-secondary)]"
                                 >
                                     Print
                                 </button>
                             </div>
-                        </div>
+                        </>
                     )}
                 </Modal>
+
+                <style>{`
+                    .ReactModal__Body--open,
+                    .ReactModal__Html--open {
+                        overflow: hidden;
+                    }
+                `}</style>
 
 
                 {/* Orders Table */}

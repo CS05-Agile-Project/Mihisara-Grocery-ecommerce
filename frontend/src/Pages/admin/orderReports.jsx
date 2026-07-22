@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import {
     BarChart,
     Bar,
@@ -154,7 +154,7 @@ const OrderReport = () => {
         doc.save("Mihisara_Grocery_Order_Report.pdf");
     };
 
-    // 🌟 Beautiful full-screen loading state
+    //  Beautiful full-screen loading state
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-50 ">
@@ -254,3 +254,4 @@ const OrderReport = () => {
 };
 
 export default OrderReport;
+

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import ProductCardCat from "../../components/ProductCardCat.jsx";
 import { motion } from "framer-motion";
 
@@ -167,7 +167,7 @@ export default function CategoryPage({ category, hotDealsOnly = false }) {
                             className="w-full"
                         />
                         <p className="text-xs text-gray-500">
-                            LKR {priceRange[0]} – {priceRange[1]}
+                            LKR {priceRange[0]}  {priceRange[1]}
                         </p>
                     </div>
 
@@ -221,7 +221,7 @@ export default function CategoryPage({ category, hotDealsOnly = false }) {
                                     onClick={() => setSearchQuery("")}
                                     className="text-gray-400 hover:text-red-500 text-sm ml-2"
                                 >
-                                    ✕
+                                    
                                 </button>
                             )}
                         </div>
@@ -270,3 +270,4 @@ export default function CategoryPage({ category, hotDealsOnly = false }) {
         </main>
     );
 }
+

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 export default function AuthLayout({ children, title, subtitle, backLink }) {
     return (
@@ -17,7 +17,7 @@ export default function AuthLayout({ children, title, subtitle, backLink }) {
                             to={backLink || "/"}
                             className="bg-white/80 text-gray-700 px-4 py-2 rounded-lg text-sm hover:bg-white transition"
                         >
-                            ← Back to website
+                             Back to website
                         </Link>
                     </div>
                 </div>
@@ -34,3 +34,4 @@ export default function AuthLayout({ children, title, subtitle, backLink }) {
         </div>
     );
 }
+

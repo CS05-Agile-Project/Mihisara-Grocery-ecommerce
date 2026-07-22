@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+﻿import { useParams } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
 
@@ -11,15 +11,15 @@ export default function VerifyOrderPage() {
     const handleAccept = async () => {
         try {
             setLoading(true);
-            setStatus("⏳ Verifying order...");
+            setStatus(" Verifying order...");
 
-            // ✅ call backend POST route to accept
+            //  call backend POST route to accept
             await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/orders/verify/${orderId}/accept`);
 
-            setStatus(`✅ Order ${orderId} has been completed successfully!`);
+            setStatus(` Order ${orderId} has been completed successfully!`);
             setCompleted(true);
         } catch (err) {
-            setStatus("❌ Failed to verify order. Please try again.");
+            setStatus(" Failed to verify order. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -41,15 +41,15 @@ export default function VerifyOrderPage() {
                             : "bg-green-600 hover:bg-green-700"
                     }`}
                 >
-                    {completed ? "✅ Completed" : loading ? "Verifying..." : "Accept & Complete"}
+                    {completed ? " Completed" : loading ? "Verifying..." : "Accept & Complete"}
                 </button>
 
                 {/* Status Message */}
                 <p
                     className={`mt-4 text-lg font-semibold ${
-                        status.startsWith("✅")
+                        status.startsWith("")
                             ? "text-green-600"
-                            : status.startsWith("❌")
+                            : status.startsWith("")
                                 ? "text-red-600"
                                 : "text-gray-600"
                     }`}
@@ -60,3 +60,4 @@ export default function VerifyOrderPage() {
         </div>
     );
 }
+

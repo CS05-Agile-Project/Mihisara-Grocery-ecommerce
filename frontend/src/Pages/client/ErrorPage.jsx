@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -94,7 +94,7 @@ export default function ErrorPage() {
           Oops! Something went missing
         </h2>
         <p className="mt-2 text-gray-600 max-w-md text-sm">
-          We couldn’t find this page, but don’t worry — let’s get you back home.
+          We couldnt find this page, but dont worry  lets get you back home.
         </p>
       </motion.div>
 
@@ -110,3 +110,4 @@ export default function ErrorPage() {
     </div>
   );
 }
+

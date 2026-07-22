@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+﻿import React, { useEffect, useRef, useState } from "react";
 import { Layers2 } from "lucide-react";
 import { Link as RouterLink } from "react-router-dom";
 
@@ -17,7 +17,7 @@ function chunkArray(arr, size) {
 function slugify(s) {
   return s.toLowerCase()
     .trim()
-    .replace(/&/g, "-and-")      // 👈 mark & as "-and-" instead of removing
+    .replace(/&/g, "-and-")      //  mark & as "-and-" instead of removing
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 }
@@ -93,3 +93,4 @@ export default function GroceryMegaMenu() {
         </div>
     );
 }
+

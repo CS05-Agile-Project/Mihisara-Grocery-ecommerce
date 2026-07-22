@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState, Fragment } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -198,7 +198,7 @@ export default function AdminDeliveryPage() {
 // Centered title
             pdf.text(titleText, titleX, titleY, { align: "center" });
 
-// ✅ underline the title
+//  underline the title
             const titleWidth = pdf.getTextWidth(titleText);
             pdf.setDrawColor(255, 165, 0); // same orange as text
             pdf.line(
@@ -240,7 +240,7 @@ export default function AdminDeliveryPage() {
                 },
                 headStyles: { fillColor: [240, 240, 240], textColor: 20 },
                 alternateRowStyles: { fillColor: [245, 245, 245] },
-                // ✅ Add a stylish title above the table
+                //  Add a stylish title above the table
                 didDrawPage: (data) => {
                     pdf.setFontSize(14);
                     pdf.setTextColor(34, 139, 34); // a nice green
@@ -319,7 +319,7 @@ export default function AdminDeliveryPage() {
                     <FiSearch className="absolute left-3 top-3 text-gray-400" />
                     <input
                         type="text"
-                        placeholder="Search delivery/order/phone…"
+                        placeholder="Search delivery/order/phone"
                         className="w-full rounded-xl border border-gray-300 pl-10 pr-0 py-2 focus:ring-2 focus:ring-emerald-500 outline-none"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
@@ -441,7 +441,7 @@ export default function AdminDeliveryPage() {
                                             textAnchor="end"
                                             tick={{ fontSize: 10 }}
                                             label={{
-                                                value: "Rider Name",       // ✅ X-axis title
+                                                value: "Rider Name",       //  X-axis title
                                                 position: "insideBottom",
                                                 offset: -50,
                                                 style: { textAnchor: "middle", fontSize: 12 },
@@ -450,7 +450,7 @@ export default function AdminDeliveryPage() {
                                         <YAxis
                                             allowDecimals={false}
                                             label={{
-                                                value: "Number of Deliveries", // ✅ Y-axis title
+                                                value: "Number of Deliveries", //  Y-axis title
                                                 angle: -90,
                                                 position: "insideLeft",
                                                 style: { textAnchor: "middle", fontSize: 12 },
@@ -539,3 +539,4 @@ const Th = ({ children, className = "" }) => (
 const Td = ({ children, className = "" }) => (
     <td className={`px-4 py-3 ${className}`}>{children}</td>
 );
+

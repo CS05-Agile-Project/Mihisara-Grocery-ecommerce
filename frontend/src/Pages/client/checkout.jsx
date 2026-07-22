@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+﻿import { useMemo, useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
@@ -29,7 +29,7 @@ export default function CheckoutPage() {
     const [selectedPayment, setSelectedPayment] = useState("cod");
 
 
-    // ✅ Constant delivery fee for home delivery
+    //  Constant delivery fee for home delivery
     const DELIVERY_FEE = 350;
 
     const getQty = (item) => Number(item.qty ?? item.quantity ?? 0);
@@ -39,7 +39,7 @@ export default function CheckoutPage() {
         [cart]
     );
 
-    // ✅ Final total including delivery fee if applicable
+    //  Final total including delivery fee if applicable
     const finalTotal = useMemo(
         () => (deliveryMethod === "home" ? cartTotal + DELIVERY_FEE : cartTotal),
         [cartTotal, deliveryMethod]
@@ -68,7 +68,7 @@ export default function CheckoutPage() {
             phone: phone.trim(),
             deliveryMethod,
             address: `${street} ${city} ${province}`.trim(),
-            total: finalTotal, // ✅ send final total to backend
+            total: finalTotal, //  send final total to backend
             products: cart.map((c) => ({
                 productId: c.productId,
                 qty: Number(c.qty ?? c.quantity ?? 1),
@@ -85,28 +85,28 @@ export default function CheckoutPage() {
             toast.success("Order placed successfully");
             toast.success("QR generated successfully");
 
-// ✅ Step 1: Get the new orderId
+//  Step 1: Get the new orderId
             const orderId = res.data.orderId;
 
-// ✅ Step 2: Update the payment column to "COD"
+//  Step 2: Update the payment column to "COD"
             await axios.put(
                 `${import.meta.env.VITE_BACKEND_URL}/api/orders/${orderId}/payment/COD`,
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            toast.success("Payment status set to COD 💵");
+            toast.success("Payment status set to COD");
 
-// ✅ Step 3: If home delivery, create delivery record
+//  Step 3: If home delivery, create delivery record
             if (deliveryMethod === "home") {
                 await axios.post(
                     import.meta.env.VITE_BACKEND_URL + "/api/delivery",
                     { orderId, phone },
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
-                toast.success("Delivery started to process 🚚");
+                toast.success("Delivery started to process");
             }
 
-// ✅ Step 4: Clean up cart and navigate
+//  Step 4: Clean up cart and navigate
             localStorage.removeItem("cart");
             setTimeout(() => navigate("/"), 2000);
 
@@ -153,7 +153,7 @@ export default function CheckoutPage() {
                                     checked={deliveryMethod === "pickup"}
                                     onChange={() => {
                                         setDeliveryMethod("pickup");
-                                        setSelectedPayment("card"); // ✅ force card only for pickup
+                                        setSelectedPayment("card"); //  force card only for pickup
                                     }}
 
                                     className="h-4 w-4 text-emerald-600"
@@ -361,7 +361,7 @@ export default function CheckoutPage() {
                             </h3>
 
                             <div className="space-y-4 text-sm">
-                                {/* Cash on Delivery — only available for Home Delivery */}
+                                {/* Cash on Delivery  only available for Home Delivery */}
                                 {deliveryMethod === "home" && (
                                     <label className="flex cursor-pointer items-start gap-3">
                                         <input
@@ -402,7 +402,7 @@ export default function CheckoutPage() {
 
                             </div>
 
-                            {/* ✅ Terms & Conditions */}
+                            {/*  Terms & Conditions */}
                             <div className="mt-6 flex items-center gap-2 border-t pt-4">
                                 <input
                                     type="checkbox"
@@ -426,13 +426,13 @@ export default function CheckoutPage() {
                                         return;
                                     }
 
-                                    // ✅ Prevent placing/redirecting without accepting terms
+                                    //  Prevent placing/redirecting without accepting terms
                                     if (!acceptedTerms) {
                                         toast.error("You must agree to the Terms & Conditions before proceeding");
                                         return;
                                     }
 
-                                    // ✅ Common validation (same as COD)
+                                    //  Common validation (same as COD)
                                     if (!firstName.trim()) return toast.error("First name is required");
                                     if (!lastName.trim()) return toast.error("Last name is required");
                                     if (!email.trim()) return toast.error("Email is required");
@@ -448,7 +448,7 @@ export default function CheckoutPage() {
 
                                     if (cart.length === 0) return toast.error("Your cart is empty");
 
-                                    // ✅ For Credit/Debit → redirect to payment if validation passes
+                                    //  For Credit/Debit  redirect to payment if validation passes
                                     if (selectedPayment === "card") {
                                         navigate("/payment", {
                                             state: {
@@ -470,7 +470,7 @@ export default function CheckoutPage() {
                                         return;
                                     }
 
-                                    // ✅ For COD → normal backend order placement
+                                    //  For COD  normal backend order placement
                                     if (selectedPayment === "cod") {
                                         placeOrder();
                                     }
@@ -494,3 +494,4 @@ export default function CheckoutPage() {
         </div>
     );
 }
+

@@ -1,4 +1,4 @@
-/* eslint-disable */
+﻿/* eslint-disable */
 import { useEffect, useMemo, useState } from "react";
 import {
   FiFilter,
@@ -98,7 +98,7 @@ export default function AdminReviewPage() {
 
   const ratingData = useMemo(() => {
     return [1, 2, 3, 4, 5].map((r) => ({
-      rating: `${r}★`,
+      rating: `${r}`,
       count: reviews.filter((rev) => Number(rev.rating) === r).length,
     }));
   }, [reviews]);
@@ -239,7 +239,7 @@ export default function AdminReviewPage() {
       <div className="mb-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard title="Total Reviews" value={kpis.total} />
         <KpiCard title="Average Rating" value={`${kpis.avg} / 5`} />
-        <KpiCard title="5★ Reviews" value={kpis.fiveStar} />
+        <KpiCard title="5 Reviews" value={kpis.fiveStar} />
       </div>
 
       {/* Filters */}
@@ -265,11 +265,11 @@ export default function AdminReviewPage() {
               className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
             >
               <option value="all">All Ratings</option>
-              <option value="5">Minimum 5★</option>
-              <option value="4">Minimum 4★</option>
-              <option value="3">Minimum 3★</option>
-              <option value="2">Minimum 2★</option>
-              <option value="1">Minimum 1★</option>
+              <option value="5">Minimum 5</option>
+              <option value="4">Minimum 4</option>
+              <option value="3">Minimum 3</option>
+              <option value="2">Minimum 2</option>
+              <option value="1">Minimum 1</option>
             </select>
             <button
               onClick={clearFilters}
@@ -446,7 +446,7 @@ function RatingStars({ value = 0, outOf = 5 }) {
           : "text-slate-300"
       }
     >
-      {type === "half" ? "☆" : "★"}
+      {type === "half" ? "" : ""}
     </span>
   );
   return (
@@ -477,3 +477,4 @@ function Td({ children, className = "" }) {
     </td>
   );
 }
+

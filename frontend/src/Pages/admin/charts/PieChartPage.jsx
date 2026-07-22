@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+﻿import { useEffect, useState, useMemo } from "react";
 import {
     ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend
 } from "recharts";
@@ -38,7 +38,7 @@ export default function PieChartPage() {
                     <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                     <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-emerald-500 rounded-full animate-ping -translate-x-1/2 -translate-y-1/2"></div>
                 </div>
-                <p className="mt-6 text-lg font-semibold text-emerald-600">Loading Pie Chart…</p>
+                <p className="mt-6 text-lg font-semibold text-emerald-600">Loading Pie Chart</p>
             </div>
         );
     }
@@ -46,7 +46,7 @@ export default function PieChartPage() {
 
     return (
         <main className="p-6 bg-neutral-50 min-h-screen">
-            <h1 className="text-3xl font-extrabold mb-6">Pie Chart – Sales by Category</h1>
+            <h1 className="text-3xl font-extrabold mb-6">Pie Chart  Sales by Category</h1>
             <div className="bg-white rounded-xl shadow p-4 h-[500px] flex items-center justify-center">
                 <ResponsiveContainer width="70%" height="100%">
                     <PieChart>
@@ -67,3 +67,4 @@ export default function PieChartPage() {
         </main>
     );
 }
+

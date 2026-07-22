@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { MessageCircleQuestion, X } from "lucide-react"; // modern icons
 
 export default function FaqWidget() {
@@ -13,7 +13,7 @@ export default function FaqWidget() {
       .catch((err) => console.error(err));
   }, []);
 
-  // ✅ Listen for footer "open-faq" event
+  //  Listen for footer "open-faq" event
   useEffect(() => {
     const handleOpen = () => setOpen(true);
     window.addEventListener("open-faq", handleOpen);
@@ -73,3 +73,4 @@ export default function FaqWidget() {
     </>
   );
 }
+

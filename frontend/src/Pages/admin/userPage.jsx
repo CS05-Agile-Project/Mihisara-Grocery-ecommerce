@@ -1,4 +1,4 @@
-// src/pages/admin/UserPage.jsx
+﻿// src/pages/admin/UserPage.jsx
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
@@ -239,7 +239,7 @@ export default function UserPage() {
                                 className="text-gray-500 hover:text-red-600 px-2"
                                 aria-label="Clear search"
                             >
-                                ✕
+                                
                             </button>
                         )}
                     </div>
@@ -284,7 +284,7 @@ export default function UserPage() {
                             currentUsers.map((u, index) => {
                                 const key = u.userId || u._id || index;
                                 const name =
-                                    `${u.firstName || ""} ${u.lastName || ""}`.trim() || "—";
+                                    `${u.firstName || ""} ${u.lastName || ""}`.trim() || "";
                                 const isBlocked = !!u.isBlocked;
 
                                 return (
@@ -293,15 +293,15 @@ export default function UserPage() {
                                         className="hover:bg-slate-50 transition duration-200"
                                     >
                                         <td className="py-3 px-4 font-medium text-slate-700">
-                                            {u.userId || u._id || "—"}
+                                            {u.userId || u._id || ""}
                                         </td>
                                         <td className="py-3 px-4">{name}</td>
                                         <td className="py-3 px-4 text-slate-700">
-                                            {u.email || "—"}
+                                            {u.email || ""}
                                         </td>
                                         <td className="py-3 px-4">
                         <span className="px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700">
-                          {u.role || "—"}
+                          {u.role || ""}
                         </span>
                                         </td>
                                         <td className="py-3 px-4">
@@ -389,3 +389,4 @@ export default function UserPage() {
         </div>
     );
 }
+

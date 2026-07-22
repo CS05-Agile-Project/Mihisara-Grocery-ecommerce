@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
+﻿/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -45,6 +45,18 @@ const toDayKey = (dLike) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const getStartOfDayMs = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d.getTime();
+};
+const getEndOfDayMs = (date) => {
+  if (!date) return null;
+  const d = new Date(date);
+  d.setHours(23, 59, 59, 999);
+  return d.getTime();
+};
 
 export default function ProductAnalysis() {
   const [orders, setOrders] = useState([]);
@@ -127,8 +139,8 @@ export default function ProductAnalysis() {
     fromStr,
     toStr,
   } = useMemo(() => {
-    const startMs = fromDate ? new Date(fromDate.setHours(0, 0, 0, 0)).getTime() : null;
-    const endMs = toDate ? new Date(toDate.setHours(23, 59, 59, 999)).getTime() : null;
+    const startMs = getStartOfDayMs(fromDate);
+    const endMs = getEndOfDayMs(toDate);
 
     const inRange = (d) => {
       const t = new Date(d).getTime();
@@ -283,7 +295,7 @@ export default function ProductAnalysis() {
       const pageH = pdf.internal.pageSize.getHeight();
 
       pdf.setFontSize(16);
-      pdf.text("Mihisara Grocery Financial Summary", pageW / 2, 14, { align: "center" });
+      pdf.text("BuyNest Financial Summary", pageW / 2, 14, { align: "center" });
       pdf.setFontSize(10);
       pdf.text(`Date range: ${fromStr} - ${toStr}`, pageW / 2, 20, { align: "center" });
       pdf.text(`Generated: ${new Date().toLocaleString()}`, pageW / 2, 25, { align: "center" });
@@ -327,7 +339,7 @@ export default function ProductAnalysis() {
         headStyles: { fillColor: [59, 130, 246], textColor: 255 },
       });
 
-      pdf.save(`product-analysis_${fromStr}_to_${toStr}.pdf`);
+      pdf.save(`financial-summary_${fromStr}_to_${toStr}.pdf`);
     } catch (err) {
       console.error("PDF build error:", err);
       toast.error("Failed to generate PDF");
@@ -342,7 +354,7 @@ export default function ProductAnalysis() {
       {/* header */}
       <div className="mb-5 flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-emerald-800">Mihisara Grocery Financial Summary</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-emerald-800">BuyNest Financial Summary</h1>
           <p className="text-sm text-slate-500">Revenue & Profit and Top Selling Products.</p>
         </div>
         <button
@@ -352,7 +364,7 @@ export default function ProductAnalysis() {
             !ready || exporting ? "bg-emerald-300 cursor-not-allowed" : "bg-emerald-600 hover:bg-emerald-700"
           }`}
         >
-          {exporting ? "Preparing…" : "Download PDF"}
+          {exporting ? "Preparing" : "Download PDF"}
         </button>
       </div>
 
@@ -403,7 +415,7 @@ export default function ProductAnalysis() {
       {/* daily table */}
       <Section id="table-block" title="Daily Financial Summary">
         {loading ? (
-          <div className="p-6">Loading…</div>
+          <div className="p-6">Loading</div>
         ) : dailyRows.length === 0 ? (
           <div className="p-6 text-sm text-slate-500">No orders in selected range.</div>
         ) : (
@@ -480,7 +492,7 @@ export default function ProductAnalysis() {
                     angle={-30}
                     textAnchor="end"
                     interval={0}
-                    tickFormatter={(l) => (l && l.length > 14 ? l.slice(0, 13) + "…" : l)}
+                    tickFormatter={(l) => (l && l.length > 14 ? l.slice(0, 13) + "" : l)}
                   />
                   <YAxis />
                   <Tooltip labelFormatter={(label) => `Product: ${label}`} />
@@ -495,3 +507,4 @@ export default function ProductAnalysis() {
     </div>
   );
 }
+

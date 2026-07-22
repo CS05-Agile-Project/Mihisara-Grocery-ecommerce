@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 
 /**
  * A full-page Calendar with per-day notes stored in localStorage.
  * - Click a date to add or edit a note.
- * - Days with notes show a green dot + “Note” badge.
+ * - Days with notes show a green dot + Note badge.
  */
 export default function CalendarPage() {
     const [value, setValue] = useState(new Date());
@@ -46,7 +46,7 @@ export default function CalendarPage() {
         if (notes[key]) {
             return (
                 <div className="mt-1 text-[10px] text-emerald-600 font-semibold flex justify-center">
-                    • Note
+                     Note
                 </div>
             );
         }
@@ -138,3 +138,4 @@ export default function CalendarPage() {
         </main>
     );
 }
+

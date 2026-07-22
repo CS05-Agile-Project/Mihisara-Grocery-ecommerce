@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
     ResponsiveContainer,
     BarChart,
@@ -37,7 +37,7 @@ export default function TopProductsPage() {
             <main className="flex items-center justify-center min-h-screen bg-neutral-50">
                 <div className="text-center">
                     <div className="w-16 h-16 mx-auto border-4 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="text-lg text-emerald-700 font-medium">Loading chart…</p>
+                    <p className="text-lg text-emerald-700 font-medium">Loading chart</p>
                 </div>
             </main>
         );
@@ -82,3 +82,4 @@ export default function TopProductsPage() {
         </main>
     );
 }
+

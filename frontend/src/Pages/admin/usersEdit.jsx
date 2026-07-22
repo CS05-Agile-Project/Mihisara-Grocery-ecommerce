@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -92,7 +92,7 @@ export default function EditUserPage() {
                 },
             });
 
-            toast.success("✅ User updated successfully");
+            toast.success(" User updated successfully");
             navigate("/admin/users");
         } catch (e) {
             toast.error(e.response?.data?.message || "Failed to update user");
@@ -267,3 +267,4 @@ function PasswordField({ label, value, onChange, placeholder, show, setShow }) {
         </div>
     );
 }
+

@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Link } from "react-router-dom";
 import { addToCart } from "../utils/cart";
 
@@ -63,7 +63,7 @@ export default function ProductCardCat({ product }) {
       hover:shadow-lg hover:-translate-y-1 transition-all duration-300 ease-in-out 
       flex flex-col items-center text-center p-4 font-poppins"
     >
-      {/* ✅ Top badges */}
+      {/*  Top badges */}
       {(discount || stockLabel) && (
         <div className="absolute top-2 left-2 right-2 flex justify-between items-center">
           {discount && discount > 0 && (
@@ -75,7 +75,7 @@ export default function ProductCardCat({ product }) {
         </div>
       )}
 
-      {/* ✅ Product Image with zoom effect */}
+      {/*  Product Image with zoom effect */}
       <Link
         to={`/product/${detailKey}`}
         className="flex flex-col items-center w-full"
@@ -99,7 +99,7 @@ export default function ProductCardCat({ product }) {
         )}
       </Link>
 
-      {/* ✅ Price section */}
+      {/*  Price section */}
       <div className="mt-3 flex items-center justify-center gap-2">
         <span className="text-lg font-bold text-accent">
           LKR {cleanPrice.toFixed(2)}
@@ -111,7 +111,7 @@ export default function ProductCardCat({ product }) {
         )}
       </div>
 
-      {/* ✅ Add button */}
+      {/*  Add button */}
       <button
         type="button"
         disabled={stock === 0}
@@ -127,8 +127,9 @@ export default function ProductCardCat({ product }) {
         {stock === 0 ? "Unavailable" : "Add to Cart"}
       </button>
 
-      {/* ✅ Glow border effect on hover */}
+      {/*  Glow border effect on hover */}
       <div className="absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-accent/30 transition-all duration-300 pointer-events-none"></div>
     </div>
   );
 }
+

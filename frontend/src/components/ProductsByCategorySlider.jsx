@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Slider from "react-slick";
 import ProductCard from "./ProductCard";
@@ -93,7 +93,7 @@ export default function ProductsByCategorySlider({
     swipeToSlide: true,
     touchMove: true,
     adaptiveHeight: true,
-    // no 'rows' here at all ✅
+    // no 'rows' here at all 
   };
 
   const hasMultiplePages = pages.length > 1;
@@ -106,7 +106,7 @@ export default function ProductsByCategorySlider({
           onClick={() => sliderRef.current?.slickPrev()}
           className="absolute -left-6 top-1/2 z-10 -translate-y-1/2 rounded-full bg-accent text-white p-2 hover:bg-emerald-700"
         >
-          ‹
+          
         </button>
       )}
 
@@ -140,9 +140,10 @@ export default function ProductsByCategorySlider({
           onClick={() => sliderRef.current?.slickNext()}
           className="absolute -right-6 top-1/2 z-10 -translate-y-1/2 rounded-full bg-accent text-white p-2 hover:bg-emerald-700"
         >
-          ›
+          
         </button>
       )}
     </div>
   );
 }
+

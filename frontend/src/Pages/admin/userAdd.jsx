@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import toast from "react-hot-toast";
@@ -122,7 +122,7 @@ export default function AddUserPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <PasswordField
                             label="Password *"
-                            placeholder="••••••••"
+                            placeholder=""
                             value={password}
                             onChange={setPassword}
                             show={showPwd}
@@ -131,7 +131,7 @@ export default function AddUserPage() {
                         />
                         <PasswordField
                             label="Confirm Password *"
-                            placeholder="••••••••"
+                            placeholder=""
                             value={confirmPassword}
                             onChange={setConfirmPassword}
                             show={showConfirm}
@@ -234,3 +234,4 @@ function PasswordField({ label, value, onChange, placeholder, show, setShow }) {
         </div>
     );
 }
+

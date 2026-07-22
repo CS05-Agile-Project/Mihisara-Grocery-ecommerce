@@ -1,6 +1,8 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import toast from "react-hot-toast";
 import { motion } from "framer-motion";
+import { FaStar } from "react-icons/fa";
+import { FiMail, FiMapPin, FiPhone } from "react-icons/fi";
 
 export default function ContactUs() {
     const [form, setForm] = useState({ comment: "", rating: 0 });
@@ -19,7 +21,7 @@ export default function ContactUs() {
 
         const token = localStorage.getItem("token");
         if (!token) {
-            toast.error("⚠️ Please log in first before sending a message.");
+            toast.error("Please log in first before sending a message.");
             return;
         }
 
@@ -38,14 +40,14 @@ export default function ContactUs() {
             const data = await res.json();
 
             if (res.ok) {
-                toast.success("✅ Your message was sent successfully!");
+                toast.success("Your message was sent successfully!");
                 setForm({ comment: "", rating: 0 });
             } else {
-                toast.error("❌ " + (data.message || "Failed to send message."));
+                toast.error(data.message || "Failed to send message.");
             }
         } catch (err) {
             console.error(err);
-            toast.error("❌ Something went wrong. Please try again.");
+            toast.error("Something went wrong. Please try again.");
         }
 
         setLoading(false);
@@ -69,7 +71,7 @@ export default function ContactUs() {
                             Contact Us
                         </h1>
                         <p className="mt-6 text-lg md:text-2xl font-medium drop-shadow">
-                            We’d love your feedback — leave a message and a rating.
+                            We'd love your feedback. Leave a message and a rating.
                         </p>
                     </div>
                 </motion.section>
@@ -111,16 +113,18 @@ export default function ContactUs() {
                             </label>
                             <div className="flex items-center space-x-2">
                                 {[1, 2, 3, 4, 5].map((star) => (
-                                    <span
+                                    <button
+                                        type="button"
                                         key={star}
                                         onClick={() => handleStarClick(star)}
                                         className={`cursor-pointer text-3xl ${form.rating >= star
                                             ? "text-yellow-400"
                                             : "text-gray-300 hover:text-yellow-200"
                                         } transition`}
+                                        aria-label={`Rate ${star} star${star === 1 ? "" : "s"}`}
                                     >
-                    ★
-                  </span>
+                                        <FaStar />
+                                    </button>
                                 ))}
                                 <span className="ml-3 text-sm text-gray-600">
                   {form.rating > 0 ? `${form.rating}/5` : "Select rating"}
@@ -183,19 +187,19 @@ export default function ContactUs() {
                         <div className="space-y-5">
                             <div className="flex items-center space-x-4">
                                 <div className="w-10 h-10 flex items-center justify-center bg-emerald-100 text-emerald-600 rounded-full">
-                                    📍
+                                    <FiMapPin className="text-xl" />
                                 </div>
                                 <span>Mihisara Grocery, A2, Hikkaduwa, Sri Lanka.</span>
                             </div>
                             <div className="flex items-center space-x-4">
                                 <div className="w-10 h-10 flex items-center justify-center bg-emerald-100 text-emerald-600 rounded-full">
-                                    📞
+                                    <FiPhone className="text-xl" />
                                 </div>
                                 <span>+94 717557972</span>
                             </div>
                             <div className="flex items-center space-x-4">
                                 <div className="w-10 h-10 flex items-center justify-center bg-emerald-100 text-emerald-600 rounded-full">
-                                    ✉️
+                                    <FiMail className="text-xl" />
                                 </div>
                                 <span>mihisaragrocery@gmail.com</span>
                             </div>
@@ -219,3 +223,4 @@ export default function ContactUs() {
         </div>
     );
 }
+

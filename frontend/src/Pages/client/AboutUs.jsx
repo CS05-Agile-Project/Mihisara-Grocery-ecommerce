@@ -1,4 +1,4 @@
-import { ShieldCheck, Leaf, Target, Lightbulb, Eye, Rocket } from "lucide-react";
+﻿import { ShieldCheck, Leaf, Target, Lightbulb, Eye, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
 
 /* ---------- Motion variants ---------- */
@@ -55,7 +55,7 @@ export default function AboutUs() {
                 <p className="mt-4 text-gray-600">
                     At <span className="font-semibold text-emerald-600">Mihisara Grocery</span>, we
                     are passionate about delivering fresh groceries at your doorstep.
-                    With years of experience in e-commerce, we’ve become your trusted
+                    With years of experience in e-commerce, weve become your trusted
                     partner for high-quality products, reliable service, and unbeatable
                     value.
                 </p>
@@ -118,3 +118,4 @@ export default function AboutUs() {
         </motion.main>
     );
 }
+

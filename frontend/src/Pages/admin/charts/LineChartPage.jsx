@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
     ResponsiveContainer, LineChart, Line,
     XAxis, YAxis, CartesianGrid, Tooltip, Legend
@@ -34,7 +34,7 @@ export default function LineChartPage() {
                     <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
                     <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-emerald-500 rounded-full animate-ping -translate-x-1/2 -translate-y-1/2"></div>
                 </div>
-                <p className="mt-6 text-lg font-semibold text-emerald-600">Loading Line Chart…</p>
+                <p className="mt-6 text-lg font-semibold text-emerald-600">Loading Line Chart</p>
             </div>
         );
     }
@@ -42,7 +42,7 @@ export default function LineChartPage() {
 
     return (
         <main className="p-6 bg-neutral-50 min-h-screen">
-            <h1 className="text-3xl font-extrabold mb-6">Line Chart – Daily Orders</h1>
+            <h1 className="text-3xl font-extrabold mb-6">Line Chart  Daily Orders</h1>
             <div className="bg-white rounded-xl shadow p-4 h-[500px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={series} margin={{ top: 20, right: 20, left: 0, bottom: 0 }}>
@@ -58,3 +58,4 @@ export default function LineChartPage() {
         </main>
     );
 }
+

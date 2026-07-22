@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import {
     BarChart,
     Bar,
@@ -69,7 +69,7 @@ export default function Dashboard() {
         []
     );
 
-    // 🌟 Beautiful full-screen loading state
+    //  Beautiful full-screen loading state
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-neutral-50 ">
@@ -80,7 +80,7 @@ export default function Dashboard() {
                     <div className="absolute top-1/2 left-1/2 w-6 h-6 bg-emerald-500 rounded-full animate-ping -translate-x-1/2 -translate-y-1/2"></div>
                 </div>
                 <p className="mt-6 text-lg font-semibold text-emerald-600">
-                    Loading Dashboard…
+                    Loading Dashboard
                 </p>
             </div>
         );
@@ -102,7 +102,7 @@ export default function Dashboard() {
                 <KpiCard label="Total returns" value={kpis.totalReturns} delta={kpis.deltaReturns} />
             </section>
 
-            {/* Product sales – Revenue only */}
+            {/* Product sales  Revenue only */}
             <section className={card}>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className={h2}>Order Sales</h2>
@@ -215,10 +215,11 @@ function KpiCard({ label, value, delta, prefix = "" }) {
                 {value?.toLocaleString?.() ?? 0}
                 {delta !== undefined && (
                     <span className={delta >= 0 ? up : down}>
-            {delta >= 0 ? "▲" : "▼"} {Math.abs(delta || 0).toFixed(1)}%
+            {delta >= 0 ? "" : ""} {Math.abs(delta || 0).toFixed(1)}%
           </span>
                 )}
             </div>
         </div>
     );
 }
+

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaChartLine, FaEdit, FaTrash } from "react-icons/fa";
-import { FiBell, FiCheckCircle } from "react-icons/fi";
+import { FiBell, FiCheckCircle, FiX } from "react-icons/fi";
 import axios from "axios";
 import toast from "react-hot-toast";
 
@@ -53,7 +53,7 @@ export default function ProductPage() {
     }
   }, [isLoading]);
 
-  // ✅ Delete product
+  //  Delete product
   function deleteProduct(productId) {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -73,7 +73,7 @@ export default function ProductPage() {
       });
   }
 
-  // ✅ Notify supplier
+  //  Notify supplier
   function notifySupplier(productId) {
     setSending(true);
     axios
@@ -179,7 +179,7 @@ export default function ProductPage() {
           </p>
         </div>
 
-        {/* 🔔 Notification Bell */}
+        {/*  Notification Bell */}
         <div className="relative z-50">
           <button
             onClick={() => setShowNotifications(!showNotifications)}
@@ -246,7 +246,7 @@ export default function ProductPage() {
                   ))
                 ) : (
                   <li className="px-4 py-2 text-sm text-slate-500">
-                    No alerts 🎉
+                    No alerts
                   </li>
                 )}
               </ul>
@@ -255,7 +255,7 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* ✅ Confirmation Modal */}
+      {/*  Confirmation Modal */}
       {showConfirm && selectedProduct && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-80 sm:w-96">
@@ -350,7 +350,7 @@ export default function ProductPage() {
                 onClick={() => setSearchQuery("")}
                 className="text-gray-500 hover:text-red-600 px-2"
               >
-                ✕
+                <FiX />
               </button>
             )}
           </div>
@@ -373,7 +373,7 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* ✅ Responsive Table Wrapper */}
+      {/*  Responsive Table Wrapper */}
       <div className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm overflow-x-auto">
         <table className="min-w-[800px] w-full text-sm md:text-base">
           <thead className="bg-slate-50 text-slate-600 sticky top-0 z-10">
@@ -514,3 +514,4 @@ export default function ProductPage() {
     </div>
   );
 }
+

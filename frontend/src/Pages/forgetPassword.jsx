@@ -1,4 +1,4 @@
-import axios from "axios";
+﻿import axios from "axios";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -87,7 +87,7 @@ export default function ForgetPasswordPage() {
                             Forgot Password
                         </h1>
                         <p className="text-sm text-gray-600 text-center">
-                            Enter your email and we’ll send you a one-time code.
+                            Enter your email and well send you a one-time code.
                         </p>
 
                         <label className="block">
@@ -223,3 +223,4 @@ export default function ForgetPasswordPage() {
         </div>
     );
 }
+
