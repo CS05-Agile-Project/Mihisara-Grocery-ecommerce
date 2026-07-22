@@ -75,12 +75,20 @@ export default function ProductPage() {
 
   //  Notify supplier
   function notifySupplier(productId) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      toast.error("Please login first");
+      return;
+    }
+
     setSending(true);
     axios
-      .post(import.meta.env.VITE_BACKEND_URL + "/api/suppliers/notify", {
-        productId,
-      })
-      .then(() => {
+      .post(
+        import.meta.env.VITE_BACKEND_URL + "/api/suppliers/notify",
+        { productId },
+        { headers: { Authorization: "Bearer " + token } }
+      )
+      .then((res) => {
         setSending(false);
         setShowConfirm(false);
         setAllProducts((prev) =>
@@ -88,7 +96,12 @@ export default function ProductPage() {
             p.productId === productId ? { ...p, notified: true } : p
           )
         );
-        toast.success("Supplier notified!");
+        const supplier = res.data?.supplier;
+        toast.success(
+          supplier?.email
+            ? `Supplier notified: ${supplier.Name} (${supplier.email})`
+            : "Supplier notified!"
+        );
       })
       .catch((err) => {
         setSending(false);

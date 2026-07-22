@@ -2,6 +2,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { clearCart } from "../../utils/cart";
 
 
 export default function CheckoutPage() {
@@ -107,7 +108,7 @@ export default function CheckoutPage() {
             }
 
 //  Step 4: Clean up cart and navigate
-            localStorage.removeItem("cart");
+            clearCart({ silent: true });
             setTimeout(() => navigate("/"), 2000);
 
 

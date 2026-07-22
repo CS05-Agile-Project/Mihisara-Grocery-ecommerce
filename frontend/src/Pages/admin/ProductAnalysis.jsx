@@ -45,6 +45,13 @@ const toDayKey = (dLike) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const loadImage = (src) =>
+  new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
 const getStartOfDayMs = (date) => {
   if (!date) return null;
   const d = new Date(date);
@@ -294,13 +301,18 @@ export default function ProductAnalysis() {
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
 
-      pdf.setFontSize(16);
-      pdf.text("BuyNest Financial Summary", pageW / 2, 14, { align: "center" });
-      pdf.setFontSize(10);
-      pdf.text(`Date range: ${fromStr} - ${toStr}`, pageW / 2, 20, { align: "center" });
-      pdf.text(`Generated: ${new Date().toLocaleString()}`, pageW / 2, 25, { align: "center" });
+      const logo = await loadImage("/logo123.png");
+      if (logo) {
+        pdf.addImage(logo, "PNG", 15, 10, 25, 15);
+      }
 
-      let y = 30;
+      pdf.setFontSize(16);
+      pdf.text("BuyNest Financial Summary", pageW / 2, 20, { align: "center" });
+      pdf.setFontSize(10);
+      pdf.text(`Date range: ${fromStr} - ${toStr}`, pageW / 2, 27, { align: "center" });
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, pageW - 15, 15, { align: "right" });
+
+      let y = 36;
       y = addImgBlock(pdf, await captureElem(kpiRef.current), "", y);
       y = addImgBlock(pdf, await captureElem(revRef.current), "Revenue by Day", y);
       y = addImgBlock(pdf, await captureElem(profitRef.current), "Profit by Day", y);

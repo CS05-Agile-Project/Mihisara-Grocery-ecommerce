@@ -94,9 +94,11 @@ export function addToCartQty(product, quantity) {
     notifyCartChange();
 }
 
-export function clearCart() {
+export function clearCart({ silent = false } = {}) {
     localStorage.setItem("cart", JSON.stringify([]));
-    toast.success("Cart cleared");
+    if (!silent) {
+        toast.success("Cart cleared");
+    }
     notifyCartChange();
 }
 

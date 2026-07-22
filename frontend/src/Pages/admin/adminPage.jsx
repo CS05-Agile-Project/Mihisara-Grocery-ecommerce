@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Navigate, NavLink, Route, Routes, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Navigate, NavLink, Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 
 import {
@@ -58,6 +58,8 @@ import {BsShopWindow} from "react-icons/bs";
 export default function AdminPage() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const sidebarScrollRef = useRef(null);
 
   const [me, setMe] = useState(null);
   useEffect(() => {
@@ -106,6 +108,17 @@ export default function AdminPage() {
   const linkIdle = "text-slate-200/85 hover:bg-white hover:text-accent";
   const linkActive = "bg-white text-accent shadow-sm";
 
+  useEffect(() => {
+    const savedScroll = sessionStorage.getItem("adminSidebarScrollTop");
+    if (!sidebarScrollRef.current || savedScroll === null) return;
+
+    requestAnimationFrame(() => {
+      if (sidebarScrollRef.current) {
+        sidebarScrollRef.current.scrollTop = Number(savedScroll) || 0;
+      }
+    });
+  }, [location.pathname]);
+
   const SectionTitle = ({ children }) => (
     <div className="mt-6 mb-2 px-4 text-[12px] font-bold uppercase tracking-wide text-[#aeb8ca]">
       {children}
@@ -117,7 +130,13 @@ export default function AdminPage() {
       to={to}
       className={({ isActive }) => `${linkBase} ${isActive ? linkActive : linkIdle}`}
       end={end}
-      onClick={() => setOpen(false)}
+      onClick={(event) => {
+        const scrollParent = event.currentTarget.closest("[data-sidebar-scroll]");
+        if (scrollParent) {
+          sessionStorage.setItem("adminSidebarScrollTop", String(scrollParent.scrollTop));
+        }
+        setOpen(false);
+      }}
     >
       <span className="text-lg leading-none">{icon}</span>
       <span className="text-[15px] font-medium">{label}</span>
@@ -154,7 +173,10 @@ export default function AdminPage() {
           <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />
           <div className="fixed inset-y-0 left-0 z-50 w-[85%] max-w-[320px] bg-[#2f714c] text-slate-100 border-r border-[#153927] flex flex-col">
             <HeaderProfile me={me} onClose={() => setOpen(false)} />
-            <nav className="px-0 py-4 overflow-y-auto h-[calc(100vh-76px-68px)] scrollbar-dark">
+            <nav
+              className="px-0 py-4 overflow-y-auto h-[calc(100vh-76px-68px)] scrollbar-dark"
+              data-sidebar-scroll
+            >
               <NavSections />
             </nav>
             <FooterLogout handleLogout={handleLogout} />
@@ -265,7 +287,11 @@ export default function AdminPage() {
             <div className="text-[12px] text-slate-300">{me?.email || "admin@gmail.com"}</div>
           </div>
         </div>
-        <nav className="py-4 overflow-y-auto sidebar-scroll scrollbar-dark">
+        <nav
+          ref={sidebarScrollRef}
+          className="py-4 overflow-y-auto sidebar-scroll scrollbar-dark"
+          data-sidebar-scroll
+        >
           <NavSections />
         </nav>
         <FooterLogout handleLogout={handleLogout} />

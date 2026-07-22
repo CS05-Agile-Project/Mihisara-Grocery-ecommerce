@@ -1,6 +1,16 @@
 import Rider from "../models/rider.js";
 import { isAdmin } from "./userController.js";
 
+async function getNextRiderId() {
+  const lastRider = await Rider.findOne({ riderId: /^BYNRD\d+$/ })
+    .sort({ riderId: -1 })
+    .select("riderId");
+  const lastNumber = lastRider?.riderId
+    ? parseInt(lastRider.riderId.replace("BYNRD", ""), 10)
+    : 0;
+  return "BYNRD" + String(lastNumber + 1).padStart(5, "0");
+}
+
 /* -------------------- ADD RIDER -------------------- */
 export async function addRider(req, res) {
   if (!isAdmin(req)) {
@@ -10,20 +20,7 @@ export async function addRider(req, res) {
   }
 
   try {
-    if (!req.body.riderId) {
-      return res.status(400).json({ message: "RiderId is required" });
-    }
-
-    const numPart = (req.body.riderId || "").trim();
-
-    if (String(parseInt(numPart, 10)) !== numPart) {
-      return res
-        .status(400)
-        .json({ message: "RiderId must be digits only" });
-    }
-
-    // Generate formatted Rider ID
-    const newRiderId = "BYNRD" + numPart.padStart(5, "0");
+    const newRiderId = await getNextRiderId();
 
     // Check if rider already exists
     const existing = await Rider.findOne({ riderId: newRiderId });
@@ -67,7 +64,7 @@ export async function addRider(req, res) {
     });
 
     await rider.save();
-    res.json({ message: "Rider added successfully", rider });
+    res.json({ message: "Rider added successfully", rider, riderId: newRiderId });
   } catch (err) {
     console.error("Add Rider Error:", err);
     res

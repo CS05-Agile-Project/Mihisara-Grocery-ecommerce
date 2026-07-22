@@ -10,6 +10,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import toast from "react-hot-toast";
+import { clearCart } from "../../utils/cart";
 
 const stripePromise = loadStripe("pk_test_51SHrno75jg306ay8OEPOFn46u50abxAJWeO1Rd4tCgzaLBEGpQXMGdiK30h9JJoGm7iwKu1W4nL0O6GBECd2zcnS006XN1AeFa");
 
@@ -156,7 +157,7 @@ function PaymentForm() {
                     }
                 }
 
-                localStorage.removeItem("cart");
+                clearCart({ silent: true });
                 setTimeout(() => navigate("/"), 2000);
             } catch (err) {
                 console.error(err);

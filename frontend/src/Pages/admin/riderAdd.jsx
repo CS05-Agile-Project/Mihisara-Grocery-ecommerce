@@ -4,7 +4,6 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 export default function AddRiderPage() {
-    const [riderId, setRiderId] = useState("");
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
     const [contactNo, setContactNo] = useState("");
@@ -24,13 +23,12 @@ export default function AddRiderPage() {
             return;
         }
 
-        if (!riderId.trim() || !email.trim() || !name.trim()) {
+        if (!email.trim() || !name.trim()) {
             toast.error("Please fill all required fields");
             return;
         }
 
         const rider = {
-            riderId: riderId.trim(),
             email: email.trim(),
             Name: name.trim(), // schema uses capital N
             contactNo: contactNo.trim(),
@@ -40,10 +38,10 @@ export default function AddRiderPage() {
 
         try {
             setSubmitting(true);
-            await axios.post(import.meta.env.VITE_BACKEND_URL+"/api/riders", rider, {
+            const res = await axios.post(import.meta.env.VITE_BACKEND_URL+"/api/riders", rider, {
                 headers: { Authorization: "Bearer " + token },
             });
-            toast.success("Rider added successfully");
+            toast.success(`Rider added successfully${res.data?.riderId ? ` (${res.data.riderId})` : ""}`);
             navigate("/admin/riders");
         } catch (e) {
             toast.error(e.response?.data?.message || "Failed to add rider");
@@ -71,14 +69,12 @@ export default function AddRiderPage() {
                 className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white shadow-sm"
             >
                 <div className="p-4 md:p-6 space-y-5">
+                    <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                        Rider ID will be generated automatically.
+                    </div>
+
                     {/* Row 1 */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <Field
-                            label="Rider ID *"
-                            placeholder="001"
-                            value={riderId}
-                            onChange={setRiderId}
-                        />
                         <Field
                             label="Email *"
                             type="email"
@@ -86,16 +82,16 @@ export default function AddRiderPage() {
                             value={email}
                             onChange={setEmail}
                         />
-                    </div>
-
-                    {/* Row 2 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Field
                             label="Rider Name *"
                             placeholder="kamal gunasekara"
                             value={name}
                             onChange={setName}
                         />
+                    </div>
+
+                    {/* Row 2 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <SelectField
                             label="Vehicle Type"
                             value={vehicleType}
@@ -110,34 +106,30 @@ export default function AddRiderPage() {
                                 { value: "Other", label: "Other" },
                             ]}
                         />
-                    </div>
-
-                    {/* Row 3 */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <Field
                             label="Contact No"
                             placeholder="071 123 4567"
                             value={contactNo}
                             onChange={setContactNo}
                         />
+                    </div>
 
-                        {/* active toggle */}
-                        <div className="flex flex-col">
-                            <label className="mb-1 text-sm font-semibold text-slate-700">
-                                Status
+                    {/* active toggle */}
+                    <div className="flex flex-col">
+                        <label className="mb-1 text-sm font-semibold text-slate-700">
+                            Status
+                        </label>
+                        <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+                            <input
+                                id="active"
+                                type="checkbox"
+                                className="h-4 w-4 accent-emerald-600"
+                                checked={status}
+                                onChange={(e) => setStatus(e.target.checked)}
+                            />
+                            <label htmlFor="active" className="text-sm text-slate-700">
+                                Active
                             </label>
-                            <div className="flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
-                                <input
-                                    id="active"
-                                    type="checkbox"
-                                    className="h-4 w-4 accent-emerald-600"
-                                    checked={status}
-                                    onChange={(e) => setStatus(e.target.checked)}
-                                />
-                                <label htmlFor="active" className="text-sm text-slate-700">
-                                    Active
-                                </label>
-                            </div>
                         </div>
                     </div>
                 </div>

@@ -269,6 +269,12 @@ export async function deleteSupplier(req, res) {
 
 // ✅ Notify Supplier via Email
 export async function notifySupplier(req, res) {
+  if (!isAdmin(req)) {
+    return res
+      .status(403)
+      .json({ message: "You are not authorized to notify suppliers" });
+  }
+
   try {
     const { productId } = req.body;
 
@@ -277,11 +283,27 @@ export async function notifySupplier(req, res) {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    const supplier = await Supplier.findOne({ productId });
-    if (!supplier) {
+    const latestSupply = await Supplier.findOne({ productId, recordType: "grn" })
+      .sort({ date: -1 })
+      .lean();
+    if (!latestSupply) {
       return res
         .status(404)
-        .json({ message: "No supplier linked to this product" });
+        .json({ message: "No GRN supplier linked to this product" });
+    }
+
+    const supplierProfile = latestSupply.supplierRefId
+      ? await Supplier.findOne({
+          supplierId: latestSupply.supplierRefId,
+          recordType: "supplier",
+        }).lean()
+      : null;
+    const supplier = supplierProfile || latestSupply;
+
+    if (!supplier?.email) {
+      return res.status(404).json({
+        message: "Supplier email is missing for this product",
+      });
     }
 
     const msg = `
@@ -320,6 +342,8 @@ export async function notifySupplier(req, res) {
       <p style="margin: 4px 0;"><b>Product Name:</b> ${product.name}</p>
       <p style="margin: 4px 0;"><b>Product ID:</b> ${product.productId}</p>
       <p style="margin: 4px 0; color: #b91c1c;"><b>Current Stock:</b> ${product.stock}</p>
+      <p style="margin: 4px 0;"><b>Last Supplier:</b> ${supplier.Name}</p>
+      <p style="margin: 4px 0;"><b>Last GRN:</b> ${latestSupply.grnId || "-"}</p>
     </div>
 
     <p style="font-size: 15px; line-height: 1.6;">
@@ -344,7 +368,15 @@ export async function notifySupplier(req, res) {
       html: msg,
     });
 
-    res.json({ message: "Email sent to supplier successfully" });
+    res.json({
+      message: "Email sent to supplier successfully",
+      supplier: {
+        supplierId: supplier.supplierId,
+        Name: supplier.Name,
+        email: supplier.email,
+      },
+      grnId: latestSupply.grnId,
+    });
   } catch (err) {
     res
       .status(500)
