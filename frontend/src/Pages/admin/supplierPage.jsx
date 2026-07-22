@@ -4,12 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { FiCalendar } from "react-icons/fi";
+import { FiCalendar, FiEye } from "react-icons/fi";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { Chart } from "chart.js/auto";
+import Modal from "react-modal";
+
+Modal.setAppElement("#root");
 
 function LoadingScreen() {
     return (
@@ -22,9 +25,11 @@ function LoadingScreen() {
 
 export default function AdminSupplierPage() {
     const [suppliers, setSuppliers] = useState([]);
+    const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
+    const [activeGrn, setActiveGrn] = useState(null);
     const pageSize = 7;
 
     const [fromDate, setFromDate] = useState(null);
@@ -62,17 +67,23 @@ export default function AdminSupplierPage() {
             setIsLoading(false);
             return;
         }
-        axios
-            .get(import.meta.env.VITE_BACKEND_URL+"/api/suppliers", {
+        Promise.all([
+            axios.get(import.meta.env.VITE_BACKEND_URL+"/api/suppliers", {
                 headers: { Authorization: "Bearer " + token },
-            })
-            .then((res) => {
-                setSuppliers(Array.isArray(res.data) ? res.data : []);
+            }),
+            axios.get(import.meta.env.VITE_BACKEND_URL+"/api/products", {
+                headers: { Authorization: "Bearer " + token },
+            }),
+        ])
+            .then(([supplierRes, productRes]) => {
+                setSuppliers(Array.isArray(supplierRes.data) ? supplierRes.data : []);
+                setProducts(Array.isArray(productRes.data) ? productRes.data : []);
                 setIsLoading(false);
             })
             .catch((e) => {
                 toast.error(e.response?.data?.message || "Failed to load suppliers");
                 setSuppliers([]);
+                setProducts([]);
                 setIsLoading(false);
             });
     }, [isLoading]);
@@ -96,97 +107,99 @@ export default function AdminSupplierPage() {
             });
     }
 
-    // ---------- Filters & pagination ----------
-    const filteredSuppliers = suppliers.filter(
-        (s) =>
-            s.Name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            s.supplierId?.toLowerCase().includes(searchQuery.toLowerCase())
+    const supplierProfiles = suppliers.filter((s) => s.recordType === "supplier");
+    const supplyRecords = suppliers.filter((s) => s.recordType !== "supplier");
+    const productById = useMemo(
+        () => new Map(products.map((product) => [product.productId, product])),
+        [products]
     );
-    const totalPages = Math.ceil(filteredSuppliers.length / pageSize);
-    const currentSuppliers = filteredSuppliers.slice(
+    const grnSummaries = useMemo(() => {
+        const groups = new Map();
+
+        supplyRecords.forEach((record) => {
+            const grnId = record.grnId || record.supplierId || "Legacy";
+            if (!groups.has(grnId)) {
+                groups.set(grnId, {
+                    grnId,
+                    Name: record.Name || "-",
+                    email: record.email || "-",
+                    contactNo: record.contactNo || "-",
+                    date: record.date,
+                    items: [],
+                    totalStock: 0,
+                    totalBill: 0,
+                });
+            }
+
+            const group = groups.get(grnId);
+            const stock = Number(record.stock) || 0;
+            const unitCost = Number(record.cost) || 0;
+
+            group.items.push(record);
+            group.totalStock += stock;
+            group.totalBill += stock * unitCost;
+
+            if (record.date && (!group.date || new Date(record.date) > new Date(group.date))) {
+                group.date = record.date;
+            }
+        });
+
+        return Array.from(groups.values()).sort(
+            (a, b) => new Date(b.date || 0) - new Date(a.date || 0)
+        );
+    }, [supplyRecords]);
+
+    // ---------- Filters & pagination ----------
+    const filteredGrns = grnSummaries.filter((grn) => {
+        const query = searchQuery.toLowerCase();
+        return (
+            grn.Name?.toLowerCase().includes(query) ||
+            grn.email?.toLowerCase().includes(query) ||
+            grn.grnId?.toLowerCase().includes(query) ||
+            grn.items.some((item) => item.productId?.toLowerCase().includes(query))
+        );
+    });
+    const totalPages = Math.ceil(filteredGrns.length / pageSize);
+    const currentGrns = filteredGrns.slice(
         (currentPage - 1) * pageSize,
         currentPage * pageSize
     );
 
-    //  Unique supplier names count
-    const totalSuppliers = new Set(suppliers.map((s) => s.Name)).size;
+    const totalSuppliers =
+        supplierProfiles.length || new Set(supplyRecords.map((s) => s.Name)).size;
 
-    const totalStock = suppliers.reduce(
+    const totalStock = supplyRecords.reduce(
         (sum, s) => sum + (Number(s.stock) || 0),
         0
     );
-    const totalCost = suppliers.reduce(
-        (sum, s) => sum + (Number(s.cost) || 0),
+    const totalCost = supplyRecords.reduce(
+        (sum, s) => sum + ((Number(s.stock) || 0) * (Number(s.cost) || 0)),
         0
     );
 
-    // ---------- Supplier Scorecard ----------
-        const scorecard = useMemo(() => {
-        const supplierGroups = {};
-        suppliers.forEach((s) => {
-            const key = s.Name || "Unknown";
-            if (!supplierGroups[key]) supplierGroups[key] = [];
-            supplierGroups[key].push(s);
-        });
+    function deleteGrn(grn) {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            toast.error("Please login first");
+            return;
+        }
 
-        return Object.entries(supplierGroups).map(([name, records]) => {
-            // Group by productId within supplier
-            const productGroups = {};
-            records.forEach((r) => {
-                const productKey = r.productId || "Unknown";
-                if (!productGroups[productKey]) productGroups[productKey] = [];
-                productGroups[productKey].push(r);
+        Promise.all(
+            grn.items.map((item) =>
+                axios.delete(
+                    import.meta.env.VITE_BACKEND_URL + "/api/suppliers/" + item.supplierId,
+                    { headers: { Authorization: "Bearer " + token } }
+                )
+            )
+        )
+            .then(() => {
+                toast.success(`${grn.grnId} deleted successfully`);
+                setIsLoading(true);
+            })
+            .catch((e) => {
+                toast.error(e.response?.data?.message || "Failed to delete GRN");
             });
-
-            // --- Calculate price consistency per product ---
-            const productConsistencies = Object.values(productGroups).map((prods) => {
-                const unitPrices = prods
-                    .map((r) => {
-                        const stock = Number(r.stock) || 0;
-                        const cost = Number(r.cost) || 0;
-                        return stock > 0 ? cost / stock : 0;
-                    })
-                    .filter((p) => p > 0);
-
-                if (unitPrices.length === 0) return 100; // no data = assume consistent
-
-                const avg =
-                    unitPrices.reduce((a, b) => a + b, 0) / unitPrices.length;
-                const max = Math.max(...unitPrices);
-                const min = Math.min(...unitPrices);
-                const priceChange = avg > 0 ? ((max - min) / avg) * 100 : 0;
-                return Math.max(0, 100 - priceChange);
-            });
-
-            // Average consistency across all products of this supplier
-            const priceConsistency =
-                productConsistencies.reduce((a, b) => a + b, 0) /
-                (productConsistencies.length || 1);
-
-            // --- Other metrics ---
-            const totalPurchase = records.reduce(
-                (sum, r) => sum + (Number(r.cost) || 0),
-                0
-            );
-            const frequency = records.length;
-
-            const purchaseScore = Math.min(100, totalPurchase / 100);
-            const frequencyScore = Math.min(100, frequency * 20);
-
-            const overallScore = Math.round(
-                purchaseScore * 0.2 + frequencyScore * 0.2 + priceConsistency * 0.6
-            );
-
-            return {
-                name,
-                totalPurchase: totalPurchase.toFixed(2),
-                frequency,
-                priceConsistency: priceConsistency.toFixed(1),
-                overallScore,
-            };
-        });
-    }, [suppliers]);
-
+    }
 
     // ---------- Generate PDF ----------
       const handleCreateReport = async () => {
@@ -224,11 +237,11 @@ export default function AdminSupplierPage() {
 
         // --- Supplier Summary ---
         const summary = {};
-        suppliers.forEach((s) => {
+        supplyRecords.forEach((s) => {
         const name = s.Name || "Unknown";
         if (!summary[name]) summary[name] = { stock: 0, cost: 0 };
         summary[name].stock += Number(s.stock) || 0;
-        summary[name].cost += Number(s.cost) || 0;
+        summary[name].cost += (Number(s.stock) || 0) * (Number(s.cost) || 0);
         });
 
         const supplierData = Object.entries(summary).map(([name, data]) => ({
@@ -252,7 +265,7 @@ export default function AdminSupplierPage() {
             labels: supplierData.map((s) => s.name),
             datasets: [
             {
-                label: "Total Cost (LKR)",
+                label: "Total Bill (LKR)",
                 data: supplierData.map((s) => s.cost),
                 backgroundColor: "#10B981",
             },
@@ -296,12 +309,12 @@ export default function AdminSupplierPage() {
         s.name,
         s.stock,
         fmt.format(s.cost),
-        ((s.cost / totalCost) * 100).toFixed(1) + "%",
+        (totalCost > 0 ? ((s.cost / totalCost) * 100).toFixed(1) : "0.0") + "%",
         ]);
 
         autoTable(doc, {
         startY: 120,
-        head: [["Supplier", "Total Stock", "Total Cost (LKR)", "% of Cost"]],
+        head: [["Supplier", "Total Stock", "Total Bill (LKR)", "% of Cost"]],
         body: tableData,
         styles: { fontSize: 9, halign: "center" },
         headStyles: { fillColor: [16, 185, 129] },
@@ -336,9 +349,9 @@ export default function AdminSupplierPage() {
         <div className="relative w-full h-full p-6 font-[var(--font-main)]">
             {/* ---- Title ---- */}
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-dgreen">Suppliers Inventory</h1>
+                <h1 className="text-3xl font-bold text-dgreen">Suppliers / GRN</h1>
                 <p className="text-gray-500 text-sm">
-                    Manage your supplier details, stock, and contact information.
+                    Manage supplier profiles and GRN stock updates.
                 </p>
             </div>
 
@@ -349,45 +362,96 @@ export default function AdminSupplierPage() {
                 <SummaryCard label="Total Supply Cost" value={fmt.format(totalCost)} />
             </div>
 
-            {/* ---- Supplier Scorecard ---- */}
+            {/* ---- Date Range + Report ---- */}
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 mb-6">
+                <div>
+                    <h2 className="text-lg font-bold text-slate-700">Supplier Cost Report</h2>
+                    <p className="text-sm text-slate-500">Choose a date range and export supply cost details.</p>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                        <span className="inline-flex items-center gap-2 text-sm font-medium text-slate-600">
+                            <FiCalendar className="text-lg text-emerald-600" />
+                            From:
+                        </span>
+                        <DatePicker
+                            selected={fromDate}
+                            onChange={(d) => setFromDate(d)}
+                            dateFormat="dd/MM/yyyy"
+                            className="w-full rounded border border-emerald-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 sm:w-48"
+                            placeholderText="dd/mm/yyyy"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                        <span className="text-sm font-medium text-slate-600">To:</span>
+                        <DatePicker
+                            selected={toDate}
+                            onChange={(d) => setToDate(d)}
+                            dateFormat="dd/MM/yyyy"
+                            className="w-full rounded border border-emerald-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 sm:w-48"
+                            placeholderText="dd/mm/yyyy"
+                        />
+                    </div>
+                    <button
+                        onClick={handleCreateReport}
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold shadow-sm"
+                    >
+                        Create report
+                    </button>
+                </div>
+            </div>
+
+            {/* ---- Supplier Directory ---- */}
             <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 mb-6">
-                <h2 className="text-xl font-bold text-slate-700 mb-4">Supplier Scorecard</h2>
+                <h2 className="text-xl font-bold text-slate-700 mb-4">Supplier Directory</h2>
                 <div className="overflow-x-auto">
                     <table className="min-w-full text-sm md:text-base">
                         <thead className="bg-slate-50 text-slate-600">
                         <tr>
-                            <th className="py-2 px-4 text-left">Supplier</th>
-                            <th className="py-2 px-4 text-center">Total Purchase (LKR)</th>
-                            <th className="py-2 px-4 text-center">Order Frequency</th>
-                            <th className="py-2 px-4 text-center">Price Consistency %</th>
-                            <th className="py-2 px-4 text-center">Overall Score</th>
+                            <th className="py-2 px-4 text-left">Supplier ID</th>
+                            <th className="py-2 px-4 text-left">Name</th>
+                            <th className="py-2 px-4 text-left">Email</th>
+                            <th className="py-2 px-4 text-left">Contact No</th>
+                            <th className="py-2 px-4 text-center">Actions</th>
                         </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
-                        {scorecard.map((sc) => (
-                            <tr key={sc.name} className="hover:bg-slate-50 transition">
-                                <td className="py-2 px-4 font-medium">{sc.name}</td>
-                                <td className="py-2 px-4 text-center">
-                                    {fmt.format(sc.totalPurchase)}
-                                </td>
-                                <td className="py-2 px-4 text-center">{sc.frequency}</td>
-                                <td className="py-2 px-4 text-center">{sc.priceConsistency}%</td>
-                                <td className="py-2 px-4 text-center">
-                    <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold
-                        ${
-                            sc.overallScore >= 85
-                                ? "bg-green-100 text-green-700"
-                                : sc.overallScore >= 70
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-red-100 text-red-600"
-                        }`}
-                    >
-                      {sc.overallScore}%
-                    </span>
+                        {supplierProfiles.length > 0 ? (
+                            supplierProfiles.map((supplier) => (
+                                <tr key={supplier.supplierId}>
+                                    <td className="py-2 px-4 font-medium text-slate-700">{supplier.supplierId}</td>
+                                    <td className="py-2 px-4">{supplier.Name}</td>
+                                    <td className="py-2 px-4">{supplier.email}</td>
+                                    <td className="py-2 px-4">{supplier.contactNo || "-"}</td>
+                                    <td className="py-2 px-4">
+                                        <div className="flex justify-center space-x-2">
+                                            <button
+                                                onClick={() =>
+                                                    navigate("/admin/edit-suppliers", { state: supplier })
+                                                }
+                                                className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition"
+                                                aria-label="Edit supplier"
+                                            >
+                                                <FaEdit size={16} />
+                                            </button>
+                                            <button
+                                                onClick={() => deleteSupplier(supplier.supplierId)}
+                                                className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 transition"
+                                                aria-label="Delete supplier"
+                                            >
+                                                <FaTrash size={16} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={5} className="py-5 text-center text-sm text-slate-500">
+                                    No supplier profiles added yet.
                                 </td>
                             </tr>
-                        ))}
+                        )}
                         </tbody>
                     </table>
                 </div>
@@ -398,7 +462,7 @@ export default function AdminSupplierPage() {
                 <div className="flex items-center border border-slate-300 rounded px-2 py-1 w-full md:w-1/2">
                     <input
                         type="text"
-                        placeholder="Search by name or supplier ID"
+                        placeholder="Search GRN, product, or supplier"
                         value={searchQuery}
                         onChange={(e) => {
                             setSearchQuery(e.target.value);
@@ -415,58 +479,32 @@ export default function AdminSupplierPage() {
                         </button>
                     )}
                 </div>
-                <Link
-                    to="/admin/add-suppliers"
-                    className="bg-dgreen hover:bg-dgreen/80 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition"
-                >
-                    + Add Supplier
-                </Link>
-            </div>
-
-            {/* ---- Date Range + Report ---- */}
-            <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col sm:flex-row sm:items-center sm:justify-end gap-3 mt-4 mb-6">
-                <div className="flex items-center text-emerald-600 gap-2">
-                    <FiCalendar className="text-xl" />
-                    <span className="text-sm text-slate-600 font-medium">From:</span>
-                    <DatePicker
-                        selected={fromDate}
-                        onChange={(d) => setFromDate(d)}
-                        dateFormat="dd/MM/yyyy"
-                        className="border rounded px-3 py-1 text-sm"
-                        placeholderText="dd/mm/yyyy"
-                    />
-                    <span className="text-sm text-slate-600 font-medium">To:</span>
-                    <DatePicker
-                        selected={toDate}
-                        onChange={(d) => setToDate(d)}
-                        dateFormat="dd/MM/yyyy"
-                        className="border rounded px-3 py-1 text-sm"
-                        placeholderText="dd/mm/yyyy"
-                    />
-                    <button
-                        onClick={handleCreateReport}
-                        className="ml-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm shadow-sm"
+                <div className="flex flex-col gap-2 sm:flex-row">
+                    <Link
+                        to="/admin/add-suppliers"
+                        className="bg-dgreen hover:bg-dgreen/80 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition text-center"
                     >
-                        Create report
-                    </button>
+                        + Add Supplier
+                    </Link>
+                    <Link
+                        to="/admin/create-grn"
+                        className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-6 rounded-lg shadow-sm transition text-center"
+                    >
+                        Create GRN
+                    </Link>
                 </div>
             </div>
 
-            {/* ---- Supplier Table ---- */}
-            <div className="w-full rounded-2xl border border-slate-200 bg-white shadow-sm overflow-x-auto">
+            {/* ---- GRN / Supply History Table ---- */}
+            <div className="mt-5 w-full rounded-2xl border border-slate-200 bg-white shadow-sm overflow-x-auto">
                 <table className="min-w-full text-sm md:text-base">
                     <thead className="bg-slate-50 text-slate-600">
                     <tr>
-                        <th className="py-3 px-4 text-xs font-semibold uppercase">
-                            Supplie ID
-                        </th>
+                        <th className="py-3 px-4 text-xs font-semibold uppercase">GRN ID</th>
                         <th className="py-3 px-4 text-xs font-semibold uppercase">Name</th>
                         <th className="py-3 px-4 text-xs font-semibold uppercase">Email</th>
-                        <th className="py-3 px-4 text-xs font-semibold uppercase">
-                            Product ID
-                        </th>
-                        <th className="py-3 px-4 text-xs font-semibold uppercase">Stock</th>
-                        <th className="py-3 px-4 text-xs font-semibold uppercase">Cost</th>
+                        <th className="py-3 px-4 text-xs font-semibold uppercase">Items</th>
+                        <th className="py-3 px-4 text-xs font-semibold uppercase">Total Bill</th>
                         <th className="py-3 px-4 text-xs font-semibold uppercase">
                             Contact No
                         </th>
@@ -477,37 +515,37 @@ export default function AdminSupplierPage() {
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
-                    {currentSuppliers.length > 0 ? (
-                        currentSuppliers.map((s, index) => (
+                    {currentGrns.length > 0 ? (
+                        currentGrns.map((grn) => (
                             <tr
-                                key={s.supplierId || index}
+                                key={grn.grnId}
                                 className="hover:bg-slate-50 transition duration-200"
                             >
-                                <td className="py-3 px-4 font-medium text-slate-700">
-                                    {s.supplierId}
+                                <td className="py-3 px-4 font-medium text-emerald-700">
+                                    {grn.grnId}
                                 </td>
-                                <td className="py-3 px-4">{s.Name || "-"}</td>
-                                <td className="py-3 px-4">{s.email || "-"}</td>
-                                <td className="py-3 px-4">{s.productId || "-"}</td>
-                                <td className="py-3 px-4">{Number(s.stock) ?? 0}</td>
+                                <td className="py-3 px-4">{grn.Name || "-"}</td>
+                                <td className="py-3 px-4">{grn.email || "-"}</td>
+                                <td className="py-3 px-4">{grn.items.length}</td>
                                 <td className="py-3 px-4">
-                                    {typeof s.cost === "number" ? fmt.format(s.cost) : "-"}
+                                    {fmt.format(grn.totalBill)}
                                 </td>
-                                <td className="py-3 px-4">{s.contactNo || "-"}</td>
-                                <td className="py-3 px-4 text-gray-600">{formatDate(s.date)}</td>
+                                <td className="py-3 px-4">{grn.contactNo || "-"}</td>
+                                <td className="py-3 px-4 text-gray-600">{formatDate(grn.date)}</td>
                                 <td className="py-3 px-4">
                                     <div className="flex justify-center space-x-2">
                                         <button
-                                            onClick={() =>
-                                                navigate("/admin/edit-suppliers", { state: s })
-                                            }
-                                            className="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition"
+                                            onClick={() => setActiveGrn(grn)}
+                                            className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+                                            aria-label={`View ${grn.grnId}`}
                                         >
-                                            <FaEdit size={16} />
+                                            <FiEye size={16} />
+                                            View
                                         </button>
                                         <button
-                                            onClick={() => deleteSupplier(s.supplierId)}
+                                            onClick={() => deleteGrn(grn)}
                                             className="p-2 rounded-full bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 transition"
+                                            aria-label={`Delete ${grn.grnId}`}
                                         >
                                             <FaTrash size={16} />
                                         </button>
@@ -518,10 +556,10 @@ export default function AdminSupplierPage() {
                     ) : (
                         <tr>
                             <td
-                                colSpan={9}
+                                colSpan={8}
                                 className="py-6 text-slate-500 text-center italic"
                             >
-                                No suppliers found
+                                No GRN records found
                             </td>
                         </tr>
                     )}
@@ -558,6 +596,105 @@ export default function AdminSupplierPage() {
                     </div>
                 )}
             </div>
+            <Modal
+                isOpen={Boolean(activeGrn)}
+                onRequestClose={() => setActiveGrn(null)}
+                overlayClassName="fixed inset-y-0 right-0 left-0 md:left-[280px] z-50 flex items-center justify-center bg-black/45 p-4"
+                className="w-full max-w-4xl max-h-[88vh] overflow-hidden rounded-xl bg-white shadow-2xl outline-none"
+                bodyOpenClassName="overflow-hidden"
+                htmlOpenClassName="overflow-hidden"
+            >
+                {activeGrn && (
+                    <div className="flex max-h-[88vh] flex-col">
+                        <div className="border-b border-slate-200 px-6 py-4">
+                            <h2 className="text-2xl font-bold text-emerald-700">
+                                GRN Details - {activeGrn.grnId}
+                            </h2>
+                        </div>
+
+                        <div className="overflow-y-auto px-6 py-5">
+                            <div className="grid gap-4 text-sm md:grid-cols-2">
+                                <div className="space-y-2">
+                                    <p>
+                                        <span className="font-semibold">Supplier:</span>{" "}
+                                        {activeGrn.Name || "-"}
+                                    </p>
+                                    <p>
+                                        <span className="font-semibold">Email:</span>{" "}
+                                        {activeGrn.email || "-"}
+                                    </p>
+                                    <p>
+                                        <span className="font-semibold">Contact No:</span>{" "}
+                                        {activeGrn.contactNo || "-"}
+                                    </p>
+                                </div>
+                                <div className="space-y-2 md:text-right">
+                                    <p>
+                                        <span className="font-semibold">Date:</span>{" "}
+                                        {formatDate(activeGrn.date)}
+                                    </p>
+                                    <p>
+                                        <span className="font-semibold">Total Items:</span>{" "}
+                                        {activeGrn.items.length}
+                                    </p>
+                                    <p className="text-lg font-bold text-emerald-700">
+                                        Total Bill: {fmt.format(activeGrn.totalBill)}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <h3 className="mt-6 mb-3 text-lg font-bold text-slate-800">
+                                Received Items
+                            </h3>
+                            <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                <table className="min-w-full text-sm">
+                                    <thead className="bg-emerald-600 text-white">
+                                    <tr>
+                                        <th className="px-4 py-3 text-left">Product ID</th>
+                                        <th className="px-4 py-3 text-left">Product Name</th>
+                                        <th className="px-4 py-3 text-right">Stock</th>
+                                        <th className="px-4 py-3 text-right">Unit Cost</th>
+                                        <th className="px-4 py-3 text-right">Total Cost</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-200">
+                                    {activeGrn.items.map((item) => {
+                                        const stock = Number(item.stock) || 0;
+                                        const unitCost = Number(item.cost) || 0;
+                                        return (
+                                            <tr key={item.supplierId}>
+                                                <td className="px-4 py-3 font-medium text-slate-700">
+                                                    {item.productId || "-"}
+                                                </td>
+                                                <td className="px-4 py-3 text-slate-700">
+                                                    {productById.get(item.productId)?.name || "-"}
+                                                </td>
+                                                <td className="px-4 py-3 text-right">{stock}</td>
+                                                <td className="px-4 py-3 text-right">
+                                                    {fmt.format(unitCost)}
+                                                </td>
+                                                <td className="px-4 py-3 text-right font-semibold">
+                                                    {fmt.format(stock * unitCost)}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end gap-3 border-t border-slate-200 bg-slate-50 px-6 py-4">
+                            <button
+                                onClick={() => setActiveGrn(null)}
+                                className="rounded-lg bg-slate-700 px-5 py-2 font-semibold text-white hover:bg-slate-800"
+                            >
+                                Close
+                            </button>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </div>
     );
 }

@@ -12,6 +12,36 @@ function daysAgo(n) {
   return d;
 }
 
+function parseDateParam(value, endOfDay = false) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  date.setHours(endOfDay ? 23 : 0, endOfDay ? 59 : 0, endOfDay ? 59 : 0, endOfDay ? 999 : 0);
+  return date;
+}
+
+function dayKey(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function buildDayRange(start, end) {
+  const days = [];
+  const current = new Date(start);
+  current.setHours(0, 0, 0, 0);
+  const last = new Date(end);
+  last.setHours(0, 0, 0, 0);
+
+  while (current <= last) {
+    days.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  return days;
+}
+
 export async function getTopCustomers(req, res) {
   try {
   
@@ -118,10 +148,15 @@ export async function getOverview(req, res) {
     }
 
     const DAYS = 12;
-    const start = daysAgo(DAYS - 1); // Last date for current range, should be Sep 28
-    const prevStart = daysAgo(DAYS * 2 - 1);
-    const prevEnd = daysAgo(DAYS);
+    const requestedFrom = parseDateParam(req.query.from);
+    const requestedTo = parseDateParam(req.query.to, true);
+    const start = requestedFrom || daysAgo(DAYS - 1);
+    const end = requestedTo || new Date();
+    const rangeMs = end.getTime() - start.getTime();
+    const prevStart = new Date(start.getTime() - rangeMs - 1);
+    const prevEnd = new Date(start.getTime() - 1);
     const ACTIVE_ORDERS = { status: { $nin: ["cancelled"] } };
+    const CURRENT_ORDERS = { ...ACTIVE_ORDERS, date: { $gte: start, $lte: end } };
 
     const [
       totalCustomers,
@@ -149,21 +184,21 @@ export async function getOverview(req, res) {
 
     const [[prevOrdersAgg], [prevRevenueAgg]] = await Promise.all([
       Order.aggregate([
-        { $match: { ...ACTIVE_ORDERS, date: { $gte: prevStart, $lt: prevEnd } } },
+      { $match: { ...ACTIVE_ORDERS, date: { $gte: prevStart, $lte: prevEnd } } },
         { $group: { _id: null, count: { $sum: 1 } } },
       ]),
       Order.aggregate([
-        { $match: { ...ACTIVE_ORDERS, date: { $gte: prevStart, $lt: prevEnd } } },
+      { $match: { ...ACTIVE_ORDERS, date: { $gte: prevStart, $lte: prevEnd } } },
         { $group: { _id: null, revenue: { $sum: "$total" } } },
       ]),
     ]);
 
     const currOrdersAgg = await Order.aggregate([
-      { $match: { ...ACTIVE_ORDERS, date: { $gte: start } } },
+      { $match: CURRENT_ORDERS },
       { $group: { _id: null, count: { $sum: 1 } } },
     ]);
     const currRevenueAgg = await Order.aggregate([
-      { $match: { ...ACTIVE_ORDERS, date: { $gte: start } } },
+      { $match: CURRENT_ORDERS },
       { $group: { _id: null, revenue: { $sum: "$total" } } },
     ]);
 
@@ -184,7 +219,7 @@ export async function getOverview(req, res) {
     };
 
     const seriesAgg = await Order.aggregate([
-      { $match: { ...ACTIVE_ORDERS, date: { $gte: start } } },
+      { $match: CURRENT_ORDERS },
       {
         $group: {
           _id: {
@@ -212,11 +247,9 @@ export async function getOverview(req, res) {
       { $sort: { dayKey: 1 } },
     ]);
 
-    // Adjust the days for displaying the last date (Sep 28)
     const days = [];
-    for (let i = DAYS - 1; i >= 0; i--) {
-      const dt = daysAgo(i);
-      const key = dt.toISOString().slice(0, 10);
+    for (const dt of buildDayRange(start, end)) {
+      const key = dayKey(dt);
       const found = seriesAgg.find(x => x.dayKey === key);
       days.push({
         day: dt.toLocaleDateString(undefined, { day: "numeric", month: "short" }),
@@ -226,7 +259,7 @@ export async function getOverview(req, res) {
     }
 
     const catAgg = await Order.aggregate([
-      { $match: ACTIVE_ORDERS },
+      { $match: CURRENT_ORDERS },
       { $unwind: "$products" },
       {
         $addFields: {

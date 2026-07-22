@@ -362,7 +362,7 @@ export default function ProductPage() {
             className="inline-flex items-center gap-2 bg-white border border-dgreen text-dgreen hover:bg-emerald-50 font-bold py-2 px-5 rounded-lg shadow-sm transition"
           >
             <FaChartLine />
-            Product Report
+            Financial Report
           </Link>
           <Link
             to="/admin/add-product"

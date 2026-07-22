@@ -11,26 +11,47 @@ import {
     LineChart,
     Line, PieChart, Pie, Cell,
 } from "recharts";
-import { FiDownload } from "react-icons/fi";
+import { FiCalendar, FiDownload } from "react-icons/fi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+
+function dateToParam(date) {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+}
 
 const OrderReport = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [err, setErr] = useState(null);
+    const [fromDate, setFromDate] = useState(null);
+    const [toDate, setToDate] = useState(null);
 
     useEffect(() => {
         let alive = true;
+        const params = new URLSearchParams();
+        if (fromDate) params.set("from", dateToParam(fromDate));
+        if (toDate) params.set("to", dateToParam(toDate));
+        const query = params.toString();
+
         (async () => {
             try {
-                const r = await fetch(import.meta.env.VITE_BACKEND_URL+"/api/dashboard/overview", {
+                setLoading(true);
+                const r = await fetch(
+                    `${import.meta.env.VITE_BACKEND_URL}/api/dashboard/overview${query ? `?${query}` : ""}`,
+                    {
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
                     },
                     credentials: "include",
-                });
+                    }
+                );
                 if (!r.ok) throw new Error(await r.text());
                 const j = await r.json();
                 if (alive) {
@@ -45,7 +66,7 @@ const OrderReport = () => {
         return () => {
             alive = false;
         };
-    }, []);
+    }, [fromDate, toDate]);
 
     const COLORS = useMemo(
         () => [
@@ -81,6 +102,16 @@ const OrderReport = () => {
             align: "center",
         });
 
+        if (fromDate || toDate) {
+            const from = fromDate ? fromDate.toLocaleDateString() : "Start";
+            const to = toDate ? toDate.toLocaleDateString() : "Today";
+            doc.setFontSize(10);
+            doc.setTextColor(16, 185, 129);
+            doc.text(`Report Period: ${from} - ${to}`, pageWidth / 2, 37, {
+                align: "center",
+            });
+        }
+
         // Generation date
         doc.setFontSize(10);
         doc.setTextColor(100, 100, 100);
@@ -88,7 +119,7 @@ const OrderReport = () => {
             align: "right",
         });
 
-        let currentY = 45;
+        let currentY = fromDate || toDate ? 50 : 45;
 
         // Product Sales Chart
         const salesNode = document.getElementById("product-sales-chart");
@@ -173,15 +204,58 @@ const OrderReport = () => {
 
     return (
         <main className="p-6 space-y-6 bg-neutral-50 min-h-screen font-poppins">
-            <h1 className="text-3xl font-extrabold tracking-tight">Order Report</h1>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight">Order Report</h1>
+                    <p className="mt-1 text-sm text-slate-500">
+                        Filter order analytics by date range and export the visible report.
+                    </p>
+                </div>
 
-            {/* Export PDF Button */}
-            <button
-                onClick={downloadPDF}
-                className="inline-flex items-center gap-2 bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-            >
-                <FiDownload /> Export to PDF
-            </button>
+                <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-sm xl:flex-row xl:items-center">
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                        <span className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+                            <FiCalendar className="text-emerald-600" />
+                            From:
+                        </span>
+                        <DatePicker
+                            selected={fromDate}
+                            onChange={(date) => setFromDate(date)}
+                            dateFormat="dd/MM/yyyy"
+                            maxDate={toDate || undefined}
+                            placeholderText="dd/mm/yyyy"
+                            className="w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 sm:w-44"
+                        />
+                    </div>
+                    <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                        <span className="text-sm font-semibold text-slate-600">To:</span>
+                        <DatePicker
+                            selected={toDate}
+                            onChange={(date) => setToDate(date)}
+                            dateFormat="dd/MM/yyyy"
+                            minDate={fromDate || undefined}
+                            placeholderText="dd/mm/yyyy"
+                            className="w-full rounded-lg border border-emerald-200 px-3 py-2 text-sm outline-none focus:border-emerald-500 sm:w-44"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setFromDate(null);
+                            setToDate(null);
+                        }}
+                        className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                    >
+                        Reset
+                    </button>
+                    <button
+                        onClick={downloadPDF}
+                        className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+                    >
+                        <FiDownload /> Export to PDF
+                    </button>
+                </div>
+            </div>
 
             {/* Daily Orders Line Chart */}
             <section className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm hover:shadow-md transition-shadow">

@@ -5,7 +5,6 @@ import toast from "react-hot-toast";
 import mediaUpload from "../../utils/mediaUpload.jsx";
 
 export default function AddProductPage() {
-  const [productId, setProductId] = useState("");
   const [name, setName] = useState("");
   const [category, setCategory] = useState(""); // single category (dropdown)
   const [description, setDescription] = useState("");
@@ -73,7 +72,6 @@ export default function AddProductPage() {
     }
 
     // basic validation (mirrors your first version)
-    if (!productId.trim()) return toast.error("Product ID is required");
     if (!name.trim()) return toast.error("Product Name is required");
     if (!category.trim()) return toast.error("Please select a category");
     if (!files.length) return toast.error("Please select at least one image");
@@ -86,7 +84,6 @@ export default function AddProductPage() {
       const imageUrls = await Promise.all(files.map((f) => mediaUpload(f)));
 
       const payload = {
-        productId: productId.trim(),
         name: name.trim(),
         categories: [category], //  backend expects array; single category
         description: description.trim(),
@@ -96,11 +93,11 @@ export default function AddProductPage() {
         stock: Number(stock) || 0,
       };
 
-      await axios.post(import.meta.env.VITE_BACKEND_URL+"/api/products", payload, {
+      const res = await axios.post(import.meta.env.VITE_BACKEND_URL+"/api/products", payload, {
         headers: { Authorization: "Bearer " + token },
       });
 
-      toast.success(" Product added successfully!");
+      toast.success(`Product added successfully${res?.data?.productId ? ` (${res.data.productId})` : ""}`);
       navigate("/admin/products");
     } catch (e) {
       console.error(e);
@@ -126,16 +123,12 @@ export default function AddProductPage() {
             className="mx-auto max-w-3xl rounded-2xl border border-slate-200 bg-white shadow-sm"
         >
           <div className="p-4 md:p-6 space-y-5">
+            <div className="rounded-lg border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+              Product ID will be generated automatically.
+            </div>
+
             {/* Row 1 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Field
-                  label="Product ID *"
-
-                  placeholder="001"
-
-                  value={productId}
-                  onChange={setProductId}
-              />
+            <div className="grid grid-cols-1 gap-4">
               <Field
                   label="Product Name *"
                   placeholder="Coca Cola 1.5L"

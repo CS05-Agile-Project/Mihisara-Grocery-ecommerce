@@ -3,6 +3,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { FiLogOut, FiEdit, FiSave, FiX, FiLock } from "react-icons/fi";
 import { motion } from "framer-motion";
+import Modal from "react-modal";
 
 export default function ProfilePage() {
     const [me, setMe] = useState(null);
@@ -19,6 +20,16 @@ export default function ProfilePage() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
+    const [activeOrder, setActiveOrder] = useState(null);
+
+    const formatCurrency = (value) =>
+        Number(value || 0).toLocaleString("en-LK", {
+            style: "currency",
+            currency: "LKR",
+        });
+
+    const formatDate = (date) =>
+        date ? new Date(date).toLocaleDateString("en-GB") : "-";
 
     useEffect(() => {
         const token = localStorage.getItem("token");
@@ -45,8 +56,8 @@ export default function ProfilePage() {
                 headers: { Authorization: `Bearer ${token}` },
             })
             .then((res) => {
-                const data = res.data;
-                setOrders(Array.isArray(data) ? data : data?.orders || []);
+                const data = Array.isArray(res.data) ? res.data : res.data?.orders || [];
+                setOrders(data);
 
                 // Calculate total spent and completed orders
                 const total = data?.reduce((acc, order) => acc + order.total, 0) || 0;
@@ -328,50 +339,55 @@ export default function ProfilePage() {
                     </div>
                 </div>
 
-                {/* Full Order Cards  */}
+                {/* Orders Table */}
                 <div className="mt-8">
                     <h3 className="text-xl font-semibold text-gray-800 mb-6">My Orders</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {orders.map((order) => (
-                            <motion.div
-                                key={order._id}
-                                className="bg-white p-6 rounded-xl shadow-md flex flex-col gap-4"
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5 }}
-                            >
-                                <div className="flex justify-between">
-                                    <h4 className="text-md font-semibold text-gray-800">Order ID: {order.orderId}</h4>
-                                    <span className={statusBadge(order.status)}>
-                                        {order.status?.[0]?.toUpperCase() + order.status?.slice(1)}
-                                    </span>
-                                </div>
-                                <div>
-                                    <h5 className="font-medium text-gray-900">Products</h5>
-                                    {order.products?.map((p, i) => (
-                                        <div key={i} className="text-gray-700">
-                                            {p.productInfo?.name} x {p.quantity}
-                                        </div>
+                    {orders.length > 0 && (
+                        <div className="overflow-hidden rounded-xl bg-white shadow-md">
+                            <div className="overflow-x-auto">
+                                <table className="min-w-[760px] w-full text-left text-sm">
+                                    <thead className="bg-slate-50 text-slate-600">
+                                    <tr>
+                                        <Th>Order ID</Th>
+                                        <Th>Date</Th>
+                                        <Th>Items</Th>
+                                        <Th>Total</Th>
+                                        <Th>Status</Th>
+                                        <Th className="text-center">Action</Th>
+                                    </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-200">
+                                    {orders.map((order, index) => (
+                                        <tr
+                                            key={order._id || order.orderId || index}
+                                            className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}
+                                        >
+                                            <Td className="font-semibold text-emerald-700">
+                                                {order.orderId}
+                                            </Td>
+                                            <Td>{formatDate(order.date || order.createdAt)}</Td>
+                                            <Td>{order.products?.length || 0}</Td>
+                                            <Td className="font-semibold">{formatCurrency(order.total)}</Td>
+                                            <Td>
+                                                <span className={statusBadge(order.status)}>
+                                                    {order.status?.[0]?.toUpperCase() + order.status?.slice(1)}
+                                                </span>
+                                            </Td>
+                                            <Td className="text-center">
+                                                <button
+                                                    onClick={() => setActiveOrder(order)}
+                                                    className="rounded-full bg-emerald-50 px-4 py-1.5 text-sm font-semibold text-emerald-700 hover:bg-emerald-100"
+                                                >
+                                                    View
+                                                </button>
+                                            </Td>
+                                        </tr>
                                     ))}
-                                </div>
-                                <div>
-                                    <h5 className="font-medium text-gray-900">Total</h5>
-                                    <p className="font-semibold text-accent">
-                                        {order.total?.toLocaleString("en-LK", {
-                                            style: "currency",
-                                            currency: "LKR",
-                                        })}
-                                    </p>
-                                </div>
-                                <div>
-                                    <h5 className="font-medium text-gray-900">Date</h5>
-                                    <p className="text-gray-700">
-                                        {new Date(order.date || order.createdAt).toLocaleDateString("en-GB")}
-                                    </p>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
 
                     {orders.length === 0 && (
                         <div className="text-center py-12 bg-white rounded-xl shadow-md">
@@ -380,7 +396,132 @@ export default function ProfilePage() {
                         </div>
                     )}
                 </div>
+
+                <Modal
+                    isOpen={!!activeOrder}
+                    onRequestClose={() => setActiveOrder(null)}
+                    bodyOpenClassName="ReactModal__Body--open"
+                    htmlOpenClassName="ReactModal__Html--open"
+                    className="flex max-h-[calc(100dvh-2rem)] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow-2xl outline-none"
+                    overlayClassName="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-black/40 p-3 sm:p-6"
+                >
+                    {activeOrder && (
+                        <>
+                            <div className="flex items-start justify-between gap-3 border-b border-slate-200 px-4 py-4 sm:px-6">
+                                <div>
+                                    <h2 className="text-xl font-bold text-emerald-700 sm:text-2xl">
+                                        Order Details
+                                    </h2>
+                                    <p className="text-sm font-semibold text-slate-600">
+                                        {activeOrder.orderId}
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setActiveOrder(null)}
+                                    className="rounded-full p-2 text-slate-500 hover:bg-slate-100"
+                                    aria-label="Close order details"
+                                >
+                                    <FiX />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:px-6">
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                    <Info label="Status">
+                                        <span className={statusBadge(activeOrder.status)}>
+                                            {activeOrder.status?.[0]?.toUpperCase() + activeOrder.status?.slice(1)}
+                                        </span>
+                                    </Info>
+                                    <Info label="Date">{formatDate(activeOrder.date || activeOrder.createdAt)}</Info>
+                                    <Info label="Total">{formatCurrency(activeOrder.total)}</Info>
+                                    <Info label="Payment">{activeOrder.paymentStatus || "-"}</Info>
+                                    <Info label="Delivery Method">{activeOrder.deliveryMethod || "-"}</Info>
+                                    <Info label="Phone">{activeOrder.phone || "-"}</Info>
+                                    <Info label="Address" className="sm:col-span-2">
+                                        {activeOrder.address || "-"}
+                                    </Info>
+                                </div>
+
+                                <div>
+                                    <h3 className="mb-3 text-lg font-semibold text-slate-800">Products</h3>
+                                    <div className="overflow-x-auto rounded-lg border border-slate-200">
+                                        <table className="min-w-[620px] w-full text-sm">
+                                            <thead className="bg-emerald-600 text-white">
+                                            <tr>
+                                                <th className="px-3 py-2 text-left">Product</th>
+                                                <th className="px-3 py-2 text-center">Qty</th>
+                                                <th className="px-3 py-2 text-right">Price</th>
+                                                <th className="px-3 py-2 text-right">Subtotal</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-200">
+                                            {activeOrder.products?.map((item, index) => {
+                                                const price = Number(item.productInfo?.price || item.price || 0);
+                                                const qty = Number(item.quantity || item.qty || 0);
+                                                return (
+                                                    <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-slate-50"}>
+                                                        <td className="px-3 py-2">
+                                                            <div className="font-medium text-slate-800">
+                                                                {item.productInfo?.name || item.productId || "Product"}
+                                                            </div>
+                                                            <div className="text-xs text-slate-500">
+                                                                {item.productInfo?.productId || item.productId || ""}
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-3 py-2 text-center">{qty}</td>
+                                                        <td className="px-3 py-2 text-right">{formatCurrency(price)}</td>
+                                                        <td className="px-3 py-2 text-right font-semibold">
+                                                            {formatCurrency(price * qty)}
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end border-t border-slate-200 px-4 py-3 sm:px-6">
+                                <button
+                                    onClick={() => setActiveOrder(null)}
+                                    className="rounded-lg bg-dgreen px-5 py-2 text-sm font-semibold text-white hover:bg-dgreen/80"
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </Modal>
+
+                <style>{`
+                    .ReactModal__Body--open,
+                    .ReactModal__Html--open {
+                        overflow: hidden;
+                    }
+                `}</style>
             </div>
         </motion.div>
+    );
+}
+
+function Th({ children, className = "" }) {
+    return (
+        <th className={`px-4 py-3 text-xs font-semibold uppercase ${className}`}>
+            {children}
+        </th>
+    );
+}
+
+function Td({ children, className = "" }) {
+    return <td className={`px-4 py-4 text-slate-700 ${className}`}>{children}</td>;
+}
+
+function Info({ label, children, className = "" }) {
+    return (
+        <div className={`rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 ${className}`}>
+            <div className="text-xs font-semibold uppercase text-slate-500">{label}</div>
+            <div className="mt-1 text-sm text-slate-800">{children}</div>
+        </div>
     );
 }

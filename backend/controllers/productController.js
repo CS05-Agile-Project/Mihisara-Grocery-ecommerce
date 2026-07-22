@@ -2,26 +2,27 @@ import Product from "../models/product.js";
 import { isAdmin } from "./userController.js";
 import mongoose from "mongoose";
 
+async function getNextProductId() {
+    const lastProduct = await Product.findOne({ productId: /^BYNPD\d+$/ })
+        .sort({ productId: -1 })
+        .select("productId");
+    const lastNumber = lastProduct?.productId
+        ? parseInt(lastProduct.productId.replace("BYNPD", ""), 10)
+        : 0;
+    return "BYNPD" + String(lastNumber + 1).padStart(5, "0");
+}
+
 export async function saveProduct(req, res) {
     if (!isAdmin(req)) {
         return res.status(403).json({ message: "Unauthorized" });
     }
 
     try {
-        if (!req.body.productId) {
-            return res.status(400).json({ message: "productId is required" });
-        }
+        const newProductId = await getNextProductId();
 
-           const numPart = (req.body.productId || "").trim();
-
-         if (String(parseInt(numPart, 10)) !== numPart) {
-          return res.status(400).json({ message: "productId must be digits only" });
-        }
-        const newProductId = "BYNPD" + numPart.padStart(5, "0");
-
-        const existing = await Product.findOne({ productId: req.body.productId });
+        const existing = await Product.findOne({ productId: newProductId });
         if (existing) {
-            return res.status(400).json({ message: "productId already exists" });
+            return res.status(400).json({ message: "Generated productId already exists" });
         }
 
 
@@ -38,7 +39,7 @@ export async function saveProduct(req, res) {
         });
 
         await product.save();
-        res.json({ message: "Product added successfully" });
+        res.json({ message: "Product added successfully", productId: newProductId });
 
     } catch (err) {
         console.error("Save error:", err);

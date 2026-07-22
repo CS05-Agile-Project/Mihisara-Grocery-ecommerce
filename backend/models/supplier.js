@@ -1,24 +1,32 @@
 import mongoose from "mongoose";
 
 const supplierSchema = mongoose.Schema({
+    recordType: {
+        type: String,
+        enum: ["supplier", "grn"],
+        default: "grn"
+    },
     supplierId: {
         type: String,
         required: true,
         unique : true
     },
+    supplierRefId: {
+        type: String,
+        required: false
+    },
+    grnId: {
+        type: String,
+        required: false
+    },
     productId: {
         type: String,
-        required: true,
+        required: false,
         unique : false
     },
     email: {
         type: String,
         required: true
-    },
-    email: {
-        type: String,
-        required: true
-
     },
     Name : {
         type : String,
@@ -26,11 +34,13 @@ const supplierSchema = mongoose.Schema({
     },
     stock : {
         type : Number,
-        required : true,
+        required : false,
+        default: 0
     },
     cost :{
         type : Number,
-        required : true,
+        required : false,
+        default: 0
     },
     contactNo :{
         type:String,

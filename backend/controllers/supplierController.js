@@ -26,6 +26,26 @@ export async function sendMail({ to, subject, html }) {
   return resp;
 }
 
+async function getNextSupplierRecordId() {
+  const lastSupplier = await Supplier.findOne({ supplierId: /^BYNSP\d+$/ })
+    .sort({ supplierId: -1 })
+    .select("supplierId");
+  const lastNumber = lastSupplier?.supplierId
+    ? parseInt(lastSupplier.supplierId.replace("BYNSP", ""), 10)
+    : 0;
+  return "BYNSP" + String(lastNumber + 1).padStart(5, "0");
+}
+
+async function getNextGrnId() {
+  const lastGrn = await Supplier.findOne({ grnId: /^GRN\d+$/ })
+    .sort({ grnId: -1 })
+    .select("grnId");
+  const lastNumber = lastGrn?.grnId
+    ? parseInt(lastGrn.grnId.replace("GRN", ""), 10)
+    : 0;
+  return "GRN" + String(lastNumber + 1).padStart(5, "0");
+}
+
 
 // ✅ Add Supplier
 export async function addSupplier(req, res) {
@@ -36,36 +56,20 @@ export async function addSupplier(req, res) {
   }
 
   try {
-    const { supplierId, productId, email, Name, stock, cost, contactNo } =
-      req.body;
+    const { email, Name, contactNo } = req.body;
 
-    if (!supplierId || !productId || !email || !Name) {
+    if (!email || !Name) {
       return res.status(400).json({
-        message: "supplierId, productId, email and Name are required",
+        message: "Supplier name and email are required",
       });
     }
 
-    // Check if product exists
-    const product = await Product.findOne({ productId });
-    if (!product) {
-      return res
-        .status(404)
-        .json({ message: "Product not found with given productId" });
-    }
-
-    const numPart = (req.body.supplierId || "").trim();
-    if (String(parseInt(numPart, 10)) !== numPart) {
-      return res
-        .status(400)
-        .json({ message: "supplierId must be digits only" });
-    }
-    const newsupplierId = "BYNSP" + numPart.padStart(5, "0");
-
     const existing = await Supplier.findOne({
-      supplierId: newsupplierId,
+      recordType: "supplier",
+      email: String(email).trim().toLowerCase(),
     });
     if (existing) {
-      return res.status(400).json({ message: "supplierId already exists" });
+      return res.status(400).json({ message: "Supplier email already exists" });
     }
 
     const phone = String(req.body.contactNo || "").trim();
@@ -75,26 +79,19 @@ export async function addSupplier(req, res) {
         .json({ message: "Phone number must be exactly 10 digits" });
     }
 
-    // Create supplier
+    const newsupplierId = await getNextSupplierRecordId();
     const supplier = new Supplier({
+      recordType: "supplier",
       supplierId: newsupplierId,
-      productId,
-      email,
-      Name,
-      stock: Number(stock),
-      cost: Number(cost),
-      contactNo,
+      email: String(email).trim().toLowerCase(),
+      Name: String(Name).trim(),
+      contactNo: phone,
     });
-
-    // Update product stock
-    product.stock = (product.stock || 0) + Number(stock);
-    await product.save();
 
     await supplier.save();
     res.json({
-      message: "Supplier added successfully and product stock updated",
+      message: "Supplier added successfully",
       supplier,
-      updatedProduct: product,
     });
   } catch (err) {
     res
@@ -104,6 +101,91 @@ export async function addSupplier(req, res) {
 }
 
 // ✅ Get All Suppliers
+export async function createSupplierGrn(req, res) {
+  if (!isAdmin(req)) {
+    return res
+      .status(403)
+      .json({ message: "You are not authorized to create supplier GRNs" });
+  }
+
+  try {
+    const { supplierId, items } = req.body;
+    if (!supplierId) {
+      return res.status(400).json({ message: "Supplier is required" });
+    }
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Please add at least one product" });
+    }
+
+    const supplier = await Supplier.findOne({
+      supplierId,
+      recordType: "supplier",
+    });
+    if (!supplier) {
+      return res.status(404).json({ message: "Supplier not found" });
+    }
+
+    const normalizedItems = items.map((item) => ({
+      productId: String(item.productId || "").trim(),
+      stock: Number(item.stock) || 0,
+      cost: Number(item.cost) || 0,
+    }));
+
+    for (const item of normalizedItems) {
+      if (!item.productId || item.stock <= 0 || item.cost < 0) {
+        return res.status(400).json({
+          message: "Each product needs a product, stock greater than 0, and valid cost",
+        });
+      }
+    }
+
+    const productIds = normalizedItems.map((item) => item.productId);
+    const products = await Product.find({ productId: { $in: productIds } });
+    const productMap = new Map(products.map((product) => [product.productId, product]));
+    const missing = productIds.filter((productId) => !productMap.has(productId));
+
+    if (missing.length > 0) {
+      return res.status(404).json({
+        message: `Product not found: ${missing.join(", ")}`,
+      });
+    }
+
+    const grnId = await getNextGrnId();
+    const grnRows = [];
+
+    for (const item of normalizedItems) {
+      const product = productMap.get(item.productId);
+      product.stock = (Number(product.stock) || 0) + item.stock;
+      await product.save();
+
+      grnRows.push(
+        await Supplier.create({
+          recordType: "grn",
+          supplierId: await getNextSupplierRecordId(),
+          supplierRefId: supplier.supplierId,
+          grnId,
+          productId: item.productId,
+          email: supplier.email,
+          Name: supplier.Name,
+          stock: item.stock,
+          cost: item.cost,
+          contactNo: supplier.contactNo,
+        })
+      );
+    }
+
+    return res.json({
+      message: "GRN created and inventory updated",
+      grnId,
+      items: grnRows,
+    });
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "Failed to create GRN", error: err.message });
+  }
+}
+
 export async function getSuppliers(req, res) {
   if (!isAdmin(req)) {
     return res
@@ -132,13 +214,30 @@ export async function updateSupplier(req, res) {
   try {
     const supplierId = req.params.supplierId;
 
-    const updatedData = {
-      ...req.body,
-      stock: req.body.stock ? Number(req.body.stock) : undefined,
-      cost: req.body.cost ? Number(req.body.cost) : undefined,
-    };
+    const currentSupplier = await Supplier.findOne({ supplierId });
+    if (!currentSupplier) {
+      return res.status(404).json({ message: "Supplier not found" });
+    }
+
+    const updatedData = { ...req.body };
+    if (req.body.stock !== undefined) updatedData.stock = Number(req.body.stock);
+    if (req.body.cost !== undefined) updatedData.cost = Number(req.body.cost);
 
     await Supplier.updateOne({ supplierId }, updatedData);
+
+    if (currentSupplier.recordType === "supplier") {
+      const grnDisplayUpdates = {};
+      if (req.body.Name !== undefined) grnDisplayUpdates.Name = req.body.Name;
+      if (req.body.email !== undefined) grnDisplayUpdates.email = req.body.email;
+      if (req.body.contactNo !== undefined) grnDisplayUpdates.contactNo = req.body.contactNo;
+
+      if (Object.keys(grnDisplayUpdates).length > 0) {
+        await Supplier.updateMany(
+          { supplierRefId: supplierId, recordType: "grn" },
+          { $set: grnDisplayUpdates }
+        );
+      }
+    }
 
     res.json({ message: "Supplier updated successfully" });
   } catch (err) {

@@ -33,6 +33,7 @@ import AdminReviewPage from "./reviewPage.jsx";
 import AdminSupplierPage from "./supplierPage.jsx";
 import AddSupplierPage from "./supplierAdd.jsx";
 import EditSupplierPage from "./supplierEdit.jsx";
+import SupplierGrnPage from "./supplierGrn.jsx";
 import AdminRiderPage from "./ridersPage.jsx";
 import AddRiderPage from "./riderAdd.jsx";
 import EditRiderPage from "./riderEdit.jsx";
@@ -101,7 +102,7 @@ export default function AdminPage() {
   }, [navigate]);
 
   const linkBase =
-    "group flex items-center gap-3 px-4 py-2.5 rounded-lg transition-colors";
+    "group flex items-center gap-3 mx-3 my-1 px-4 py-2.5 rounded-lg transition-colors";
   const linkIdle = "text-slate-200/85 hover:bg-white hover:text-accent";
   const linkActive = "bg-white text-accent shadow-sm";
 
@@ -183,6 +184,7 @@ export default function AdminPage() {
             <Route path="reviews" element={<AdminReviewPage />} />
             <Route path="suppliers" element={<AdminSupplierPage />} />
             <Route path="add-suppliers" element={<AddSupplierPage />} />
+            <Route path="create-grn" element={<SupplierGrnPage />} />
             <Route path="edit-suppliers" element={<EditSupplierPage />} />
             <Route path="riders" element={<AdminRiderPage />} />
             <Route path="add-riders" element={<AddRiderPage />} />
@@ -276,26 +278,24 @@ export default function AdminPage() {
       <>
         <SectionTitle>Dashboard</SectionTitle>
         <Item to="/admin/dashboard" icon={<FiHome />} label="Overview" />
-        <Item to="/" icon={<BsShopWindow />} label="Site Home" end />
 
         <SectionTitle>Analytics</SectionTitle>
         <Item to="/admin/product-analysis" icon={<FiPieChart />} label="Financial Summary" />
 
-        <SectionTitle>Data</SectionTitle>
-        <Item to="/admin/users" icon={<FiUsers />} label="Manage Users" />
-        <Item to="/admin/orders" icon={<FiShoppingBag />} label="Order Management" />
-
         <SectionTitle>Pages</SectionTitle>
-        <Item to="/admin/products" icon={<FiBox />} label="Products" />
-        <Item to="/admin/reviews" icon={<FiStar />} label="Reviews" />
+        <Item to="/admin/orders" icon={<FiShoppingBag />} label="Order Management" />
+        <Item to="/admin/products" icon={<FiBox />} label="Products / Inventory" />
+        <Item to="/admin/suppliers" icon={<FiFileText />} label="Suppliers / GRN" />
         <Item to="/admin/riders" icon={<FiTruck />} label="Riders" />
-        <Item to="/admin/faqs" icon={<FiHelpCircle />} label="FAQ Page" />
-        <Item to="/admin/suppliers" icon={<FiFileText />} label="Suppliers" />
         <Item to="/admin/delivery" icon={<FiActivity />} label="Delivery" />
+        <Item to="/admin/reviews" icon={<FiStar />} label="Reviews" />
+        <Item to="/admin/faqs" icon={<FiHelpCircle />} label="FAQ Page" />
+        <Item to="/admin/users" icon={<FiUsers />} label="User Management" />
 
         <SectionTitle>Quick Actions</SectionTitle>
         <Item to="/admin/add-product" icon={<FiPlusCircle />} label="Add Product" />
         <Item to="/admin/add-suppliers" icon={<FiPlusCircle />} label="Add Supplier" />
+        <Item to="/admin/create-grn" icon={<FiPlusCircle />} label="Create GRN" />
         <Item to="/admin/add-riders" icon={<FiPlusCircle />} label="Add Rider" />
         <Item to="/admin/add-faqs" icon={<FiPlusCircle />} label="Add FAQ" />
         <Item to="/admin/add-users" icon={<FiPlusCircle />} label="Add Users" />
@@ -315,13 +315,24 @@ export default function AdminPage() {
   function FooterLogout({ handleLogout }) {
     return (
       <div className="mt-auto px-4 py-4 border-t border-[#153927]">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-md bg-white text-slate-800 hover:bg-slate-100 active:scale-[.99]"
-        >
-          <FiLogOut className="text-lg" />
-          <span className="text-sm font-medium">Log out</span>
-        </button>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={handleLogout}
+            className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-md bg-slate-50 text-slate-800 hover:bg-white active:scale-[.99]"
+          >
+            <FiLogOut className="text-lg" />
+            <span className="text-sm font-medium">Log out</span>
+          </button>
+          <NavLink
+            to="/"
+            end
+            className="flex items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 py-2.5 text-white transition hover:bg-emerald-500 active:scale-[.99]"
+            onClick={() => setOpen(false)}
+          >
+            <BsShopWindow className="text-lg" />
+            <span className="text-sm font-medium">Home</span>
+          </NavLink>
+        </div>
       </div>
     );
   }
