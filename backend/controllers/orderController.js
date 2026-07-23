@@ -2,25 +2,25 @@ import Order from "../models/order.js";
 import Product from "../models/product.js";
 import { isAdmin } from "./userController.js";
 import QRCode from "qrcode";  // ✅ QR code generator
-import { sendSMS } from "../utils/sendSMS.js";
+import { sendMail } from "../utils/mailer.js";
 import mongoose from "mongoose";
 
-// ✅ Normalize Sri Lankan numbers (Twilio E.164 format)
-function normalizePhone(number) {
-  if (!number) return null;
+async function sendOrderStatusEmail(order, subject, message) {
+  if (!order.email) return;
 
-  // remove spaces, dashes, or parentheses
-  number = number.replace(/\s|[-()]/g, "");
-
-  // if it starts with 0, replace with +94
-  if (number.startsWith("0")) return "+94" + number.substring(1);
-
-  // if it already starts with +, keep as is
-  if (number.startsWith("+")) return number;
-
-  // fallback (assume Sri Lanka if no prefix)
-  return "+94" + number;
+  await sendMail({
+    to: order.email,
+    subject,
+    text: message,
+    html: `
+      <div style="font-family: Arial, sans-serif; color: #333;">
+        <h2 style="color: #059669;">Mihisara Grocery</h2>
+        <p>${message}</p>
+      </div>
+    `,
+  });
 }
+
 
 
 /* -------------------- CREATE ORDER -------------------- */
@@ -224,15 +224,20 @@ export async function updateOrderStatus(req, res) {
 
     await Order.updateOne({ orderId }, { status });
 
-    // ✅ SMS logic
+    // Email notification logic
     if (order.deliveryMethod === "pickup" && status === "processing") {
-      await sendSMS(normalizePhone(order.phone), `Hi ${order.name}, your order ${orderId} at Mihisara Grocery is now processed. You can collect your order in approximately 10 minutes. Thank you for shopping with Mihisara Grocery!`);
+      await sendOrderStatusEmail(
+        order,
+        `Order ${orderId} is now processed`,
+        `Hi ${order.name}, your order ${orderId} at Mihisara Grocery is now processed. You can collect your order in approximately 10 minutes. Thank you for shopping with Mihisara Grocery!`
+      );
 
     }
 
     if (order.deliveryMethod === "home" && status === "completed") {
-      await sendSMS(
-       normalizePhone(order.phone),
+      await sendOrderStatusEmail(
+        order,
+        `Order ${orderId} is ready for delivery`,
         `Hi ${order.name}, your order ${orderId} is ready for delivery. Thank you for shopping with Mihisara Grocery!`
       );
     }
