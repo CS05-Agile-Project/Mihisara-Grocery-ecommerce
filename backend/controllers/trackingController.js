@@ -1,11 +1,10 @@
 import crypto from "crypto";
-import sgMail from "@sendgrid/mail";
+import { sendMail } from "../utils/mailer.js";
 import Rider from "../models/rider.js";
 import LocationSession from "../models/LocationSession.js";
 import RiderLocation from "../models/RiderLocation.js";
 
-// ✅ Initialize SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+// Email is sent with Gmail SMTP through MAIL_USER and MAIL_PASS.
 
 /**
  * POST /api/tracking/start/:riderId
@@ -38,7 +37,6 @@ export async function startTracking(req, res) {
     // ✅ Send email to rider
     const msg = {
       to: rider.email,
-      from: process.env.SENDGRID_FROM,
       subject: "📍 Live Tracking Started - Mihisara Grocery Delivery",
       html: `
         <div style="font-family:Arial,sans-serif;line-height:1.5;color:#333">
@@ -64,7 +62,7 @@ export async function startTracking(req, res) {
       `,
     };
 
-    await sgMail.send(msg);
+    await sendMail(msg);
     console.log(`📧 Tracking email sent to ${rider.email}`);
 
     res.json({
@@ -100,7 +98,6 @@ export async function stopTracking(req, res) {
     if (rider) {
       const msg = {
         to: rider.email,
-        from: process.env.SENDGRID_FROM,
         subject: "🛑 Tracking Stopped - Mihisara Grocery Delivery",
         html: `
           <div style="font-family:Arial,sans-serif;line-height:1.5;color:#333">
@@ -112,7 +109,7 @@ export async function stopTracking(req, res) {
           </div>
         `,
       };
-      await sgMail.send(msg);
+      await sendMail(msg);
       console.log(`📧 Stop tracking email sent to ${rider.email}`);
     }
 

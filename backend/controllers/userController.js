@@ -4,7 +4,7 @@ import axios from "axios";
 import jwt from "jsonwebtoken";
 import User from "../models/user.js";
 import OTP from "../models/otp.js";
-import sgMail from "@sendgrid/mail";
+import { sendMail } from "../utils/mailer.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -261,8 +261,6 @@ export async function toggleBlockUser(req, res) {
 
 
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 export async function sendOTP(req, res) {
   try {
     const email = req.body.email;
@@ -285,9 +283,8 @@ export async function sendOTP(req, res) {
     await otp.save();
 
  
-    const msg = {
+    await sendMail({
       to: email,
-      from: process.env.SENDGRID_FROM, 
       subject: "Resetting password for Mihisara Grocery",
       html: `
         <div style="font-family: Arial, sans-serif; color: #333;">
@@ -299,26 +296,15 @@ export async function sendOTP(req, res) {
           <p>Thanks,<br/>The Mihisara Grocery Team</p>
         </div>
       `,
-     
+      
       text: `Your Mihisara Grocery OTP is: ${randomOTP}. Please don't share this code.`,
-    };
+    });
 
-  
-    const [response] = await sgMail.send(msg);
-
-    if (response.statusCode === 202) {
-      console.log(" Email sent successfully to:", email);
-      return res.status(200).json({
-        message: "OTP sent successfully",
-        otp: randomOTP, 
-      });
-    } else {
-      console.error(" Unexpected SendGrid response:", response.statusCode);
-      return res.status(500).json({
-        message: "Failed to send OTP - unexpected response",
-        statusCode: response.statusCode,
-      });
-    }
+    console.log("Email sent successfully to:", email);
+    return res.status(200).json({
+      message: "OTP sent successfully",
+      otp: randomOTP,
+    });
   } catch (err) {
     console.error(" Error sending OTP:", err);
     return res.status(500).json({

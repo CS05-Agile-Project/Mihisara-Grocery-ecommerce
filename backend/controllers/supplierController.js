@@ -1,29 +1,10 @@
 import Supplier from "../models/supplier.js";
 import Product from "../models/product.js";
 import { isAdmin } from "./userController.js";
-import sgMail from "@sendgrid/mail";
-
-// initialize once at module load
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
+import { sendMail as sendGmail } from "../utils/mailer.js";
 
 export async function sendMail({ to, subject, html }) {
-  const from = process.env.SENDGRID_FROM ; // must be verified sender in SendGrid
-
-  const msg = {
-    to,
-    from,
-    subject,
-    html,
-    // plain-text fallback → improves deliverability
-    text: html.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "").trim(),
-  };
-
-  const [resp] = await sgMail.send(msg);
-  if (resp.statusCode !== 202) {
-    throw new Error(`SendGrid failed with status ${resp.statusCode}`);
-  }
-  return resp;
+  return sendGmail({ to, subject, html });
 }
 
 async function getNextSupplierRecordId() {

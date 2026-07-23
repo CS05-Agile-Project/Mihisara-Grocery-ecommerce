@@ -13,7 +13,7 @@ import {GoogleOAuthProvider} from "@react-oauth/google";
 
 function App() {
   return (
-      <GoogleOAuthProvider clientId="932522795625-37a6btc2f1i50g4eva3eg69f1nft5dsi.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
     <BrowserRouter>
       {/*  ensures every route change scrolls to top */}
       <ScrollToTop />

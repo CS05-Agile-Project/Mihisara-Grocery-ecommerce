@@ -41,6 +41,7 @@ export default function LoginPage() {
     }
 
     const googleLogin = useGoogleLogin({
+        prompt: "consent",
         onSuccess: (response) => {
             const accessToken = response.access_token;
             axios

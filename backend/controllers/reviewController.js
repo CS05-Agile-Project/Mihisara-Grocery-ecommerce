@@ -1,6 +1,6 @@
 import Review from "../models/review.js";
 import User from "../models/user.js";
-import sgMail from "@sendgrid/mail";
+import { sendMail } from "../utils/mailer.js";
 
 export async function addReview(req, res) {
     try {
@@ -54,8 +54,6 @@ export async function getReviews(req, res) {
 
 
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
 export async function sendReply(req, res) {
   try {
     
@@ -98,23 +96,15 @@ export async function sendReply(req, res) {
     `;
 
     
-    const msg = {
+    await sendMail({
       to: email,
-      from: process.env.SENDGRID_FROM,
       subject,
       text,
       html,
-    };
+    });
 
-    const [response] = await sgMail.send(msg);
-
-    if (response.statusCode === 202) {
-      console.log("Reply email sent successfully to:", email);
-      res.json({ message: "Reply email sent successfully" });
-    } else {
-      console.error("SendGrid response code:", response.statusCode);
-      res.status(500).json({ message: "Failed to send reply email" });
-    }
+    console.log("Reply email sent successfully to:", email);
+    res.json({ message: "Reply email sent successfully" });
   } catch (err) {
     console.error("Error sending reply:", err);
     res.status(500).json({
