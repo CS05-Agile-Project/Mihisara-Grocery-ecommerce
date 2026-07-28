@@ -18,6 +18,7 @@ import orderRouter from "./routes/orderRouter.js";
 import dashboardRoutes from "./routes/dashboardRoutes.js";
 import trackingRouter from "./routes/tracking.js";
 import paymentRouter from "./routes/paymentRouter.js";
+import chatRouter from "./routes/chatRouter.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -49,7 +50,7 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-  })
+  }),
 );
 app.use(bodyParser.json());
 
@@ -85,13 +86,16 @@ app.use("/api/orders", orderRouter);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/tracking", trackingRouter);
 app.use("/api/payment", paymentRouter);
+app.use("/api/chat", chatRouter);
 
 const PORT = 5000;
 
 mongoose
   .connect(process.env.MONGODB_URL, { serverSelectionTimeoutMS: 15000 })
   .then(() => {
-    console.log(`Connected to the ${mongoose.connection.db.databaseName} database`);
+    console.log(
+      `Connected to the ${mongoose.connection.db.databaseName} database`,
+    );
     server.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
