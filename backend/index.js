@@ -23,11 +23,28 @@ import { connectToMongo } from "./utils/mongoConnection.js";
 
 const app = express();
 const server = http.createServer(app);
+
 const allowedOrigins = [
   process.env.FRONTENDURL,
+  "https://mihisara-grocery-ecommerce.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
 ].filter(Boolean);
+
+const corsOptions = {
+  origin(origin, callback) {
+    // Allow Postman and server-to-server requests with no Origin header
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
 const io = new Server(server, {
   cors: {
@@ -47,12 +64,9 @@ io.on("connection", (socket) => {
   });
 });
 
-app.use(
-  cors({
-    origin: allowedOrigins,
-    credentials: true,
-  }),
-);
+// CORS must be before all routes
+app.use(cors(corsOptions));
+
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
@@ -76,6 +90,13 @@ app.use((req, res, next) => {
   });
 });
 
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "Mihisara Grocery backend is running successfully",
+  });
+});
+
 app.use("/api/users", userRouter);
 app.use("/api/products", productRouter);
 app.use("/api/riders", riderRouter);
@@ -89,7 +110,7 @@ app.use("/api/tracking", trackingRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/chat", chatRouter);
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5000;
 
 connectToMongo(mongoose, process.env.MONGODB_URL, {
   serverSelectionTimeoutMS: 15000,
@@ -104,7 +125,8 @@ connectToMongo(mongoose, process.env.MONGODB_URL, {
     console.log(
       `Connected to the ${mongoose.connection.db.databaseName} database`,
     );
-    server.listen(PORT, () => {
+
+    server.listen(PORT, "0.0.0.0", () => {
       console.log(`Server is running on port ${PORT}`);
     });
   })

@@ -1,6 +1,6 @@
 ﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect, useMemo, useState, Fragment } from "react";
+import { useEffect, useMemo, useRef, useState, Fragment } from "react";
 import axios from "axios";
 import toast from "react-hot-toast";
 import { FaChevronLeft, FaChevronRight, FaEdit, FaPlay, FaStop, FaTrash } from "react-icons/fa";
@@ -41,7 +41,15 @@ export default function AdminRiderPage() {
     const [page, setPage] = useState(1);
 
     const [map, setMap] = useState(null);
-    const [markers, setMarkers] = useState({}); // riderId -> google.maps.Marker
+    const socketRef = useRef(null);
+    const ridersRef = useRef([]);
+    const markersRef = useRef({});
+    const stoppedRidersRef = useRef(new Set());
+    const [liveMarkerCount, setLiveMarkerCount] = useState(0);
+
+    useEffect(() => {
+        ridersRef.current = riders;
+    }, [riders]);
 
     // Load Google Maps script
     useEffect(() => {
@@ -109,22 +117,25 @@ export default function AdminRiderPage() {
 
     // Socket for live updates
     const socketURL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
-    let socket; // singleton
 
     useEffect(() => {
-        if (!socket) {
-            socket = io(socketURL, {
+        if (!socketRef.current) {
+            socketRef.current = io(socketURL, {
                 transports: ["websocket"], // websocket only
                 withCredentials: true,
             });
         }
 
-        socket.on("connect", () => {
-        });
+        const socket = socketRef.current;
+        const handleTrackingStopped = ({ riderId }) => {
+            stoppedRidersRef.current.add(riderId);
+            removeMarker(riderId);
+        };
 
         socket.on("riderLocation", (loc) => {
             upsertMarker(loc);
         });
+        socket.on("riderTrackingStopped", handleTrackingStopped);
 
         socket.on("disconnect", (reason) => {
             console.warn("Socket disconnected:", reason);
@@ -135,40 +146,100 @@ export default function AdminRiderPage() {
             socket.off("connect");
             socket.off("disconnect");
             socket.off("riderLocation");
+            socket.off("riderTrackingStopped", handleTrackingStopped);
         };
     }, [map]);
 
 
     function upsertMarker(loc) {
-        if (!map || !window.google || !loc?.lat || !loc?.lng) return;
+        if (
+            !map ||
+            !window.google ||
+            !loc?.riderId ||
+            typeof loc?.lat !== "number" ||
+            typeof loc?.lng !== "number"
+        ) {
+            return;
+        }
+
+        if (stoppedRidersRef.current.has(loc.riderId)) {
+            return;
+        }
 
         // Find rider's name from riders list if available
-        const riderName = riders.find(r => r.riderId === loc.riderId)?.Name || loc.riderId;
+        const riderName =
+            ridersRef.current.find((r) => r.riderId === loc.riderId)?.Name || loc.riderId;
+        const existing = markersRef.current[loc.riderId];
 
-        setMarkers((prev) => {
-            const existing = prev[loc.riderId];
-            if (existing) {
-                existing.setPosition({ lat: loc.lat, lng: loc.lng });
-                existing.setTitle(`${riderName}`);
-                return prev;
-            } else {
-                const marker = new window.google.maps.Marker({
-                    position: { lat: loc.lat, lng: loc.lng },
-                    map,
-                    title: `${riderName}`,
-                });
-                const info = new window.google.maps.InfoWindow({
-                    content: `<div style="min-width:160px">
-                        <b>${riderName}</b><br/>
-                        ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}<br/>
-                        <small>${new Date(loc.timestamp).toLocaleString()}</small>
-                    </div>`
-                });
-                marker.addListener("click", () => info.open({ anchor: marker, map }));
-                return { ...prev, [loc.riderId]: marker };
-            }
+        if (existing) {
+            existing.setPosition({ lat: loc.lat, lng: loc.lng });
+            existing.setTitle(`${riderName}`);
+            return;
+        }
+
+        const marker = new window.google.maps.Marker({
+            position: { lat: loc.lat, lng: loc.lng },
+            map,
+            title: `${riderName}`,
         });
+        const info = new window.google.maps.InfoWindow({
+            content: `<div style="min-width:160px">
+                <b>${riderName}</b><br/>
+                ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}<br/>
+                <small>${new Date(loc.timestamp).toLocaleString()}</small>
+            </div>`
+        });
+        marker.addListener("click", () => info.open({ anchor: marker, map }));
+        markersRef.current[loc.riderId] = marker;
+        setLiveMarkerCount(Object.keys(markersRef.current).length);
     }
+
+    function removeMarker(riderId) {
+        if (!riderId) return;
+        const existing = markersRef.current[riderId];
+        if (!existing) {
+            return;
+        }
+
+        existing.setMap(null);
+        delete markersRef.current[riderId];
+        setLiveMarkerCount(Object.keys(markersRef.current).length);
+    }
+
+    async function syncLiveLocations() {
+        if (!map) return;
+
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        try {
+            const res = await axios.get(
+                `${import.meta.env.VITE_BACKEND_URL}/api/tracking/locations`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                }
+            );
+            const locations = Array.isArray(res.data) ? res.data : [];
+            const activeRiderIds = new Set(locations.map((loc) => loc?.riderId).filter(Boolean));
+
+            Object.keys(markersRef.current).forEach((riderId) => {
+                if (!activeRiderIds.has(riderId)) {
+                    removeMarker(riderId);
+                }
+            });
+
+            locations.forEach((loc) => {
+                stoppedRidersRef.current.delete(loc.riderId);
+                upsertMarker(loc);
+            });
+        } catch (error) {
+            console.error("Failed to load live rider locations:", error);
+        }
+    }
+
+    useEffect(() => {
+        syncLiveLocations();
+    }, [map, riders]);
 
 
     // ---------- Fetch Riders ----------
@@ -224,6 +295,7 @@ export default function AdminRiderPage() {
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            stoppedRidersRef.current.delete(rider.riderId);
             toast.success("Tracking link generated");
             await navigator.clipboard.writeText(res.data.trackingUrl);
             toast.success("Link copied to clipboard");
@@ -240,6 +312,9 @@ export default function AdminRiderPage() {
                 {},
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            stoppedRidersRef.current.add(rider.riderId);
+            removeMarker(rider.riderId);
+            await syncLiveLocations();
             toast.success("Tracking stopped");
         } catch (e) {
             toast.error(e?.response?.data?.message || "Failed to stop tracking");
@@ -432,7 +507,9 @@ export default function AdminRiderPage() {
             <section className="rounded-xl border border-neutral-200 bg-white shadow-sm p-4">
                 <div className="flex items-center justify-between mb-2">
                     <h2 className="font-semibold text-lg">Rider Live Map</h2>
-                    <p className="text-sm text-slate-500">Shows riders who are sharing their location</p>
+                    <p className="text-sm text-slate-500">
+                        {liveMarkerCount} rider{liveMarkerCount === 1 ? "" : "s"} sharing their location
+                    </p>
                 </div>
                 <div id="delivery-map" className="w-full h-[420px] rounded-lg" />
             </section>

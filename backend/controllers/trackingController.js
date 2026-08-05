@@ -87,11 +87,20 @@ export async function stopTracking(req, res) {
   try {
     const { riderId } = req.params;
     const session = await LocationSession.findOne({ riderId, active: true });
-    if (!session) return res.json({ message: "No active session" });
+    if (session) {
+      session.active = false;
+      session.endedAt = new Date();
+      await session.save();
+    }
 
-    session.active = false;
-    session.endedAt = new Date();
-    await session.save();
+    await RiderLocation.deleteOne({ riderId });
+
+    const io = req.app.get("io");
+    io?.emit("riderTrackingStopped", { riderId });
+
+    if (!session) {
+      return res.json({ message: "No active session", riderId });
+    }
 
     // (Optional) notify rider via email
     const rider = await Rider.findOne({ riderId });
@@ -267,7 +276,16 @@ export async function pingLocation(req, res) {
  */
 export async function getLatestLocations(req, res) {
   try {
-    const list = await RiderLocation.find().lean();
+    const activeSessions = await LocationSession.find({ active: true })
+      .select("riderId -_id")
+      .lean();
+    const riderIds = activeSessions.map((session) => session.riderId);
+
+    if (riderIds.length === 0) {
+      return res.json([]);
+    }
+
+    const list = await RiderLocation.find({ riderId: { $in: riderIds } }).lean();
     res.json(list);
   } catch (err) {
     res.status(500).json({
