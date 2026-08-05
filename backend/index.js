@@ -19,6 +19,7 @@ import dashboardRoutes from "./routes/dashboardRoutes.js";
 import trackingRouter from "./routes/tracking.js";
 import paymentRouter from "./routes/paymentRouter.js";
 import chatRouter from "./routes/chatRouter.js";
+import { connectToMongo } from "./utils/mongoConnection.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -90,9 +91,16 @@ app.use("/api/chat", chatRouter);
 
 const PORT = 5000;
 
-mongoose
-  .connect(process.env.MONGODB_URL, { serverSelectionTimeoutMS: 15000 })
-  .then(() => {
+connectToMongo(mongoose, process.env.MONGODB_URL, {
+  serverSelectionTimeoutMS: 15000,
+})
+  .then(({ usedDirectFallback }) => {
+    if (usedDirectFallback) {
+      console.warn(
+        "MongoDB connected with a direct host fallback after the SRV lookup failed.",
+      );
+    }
+
     console.log(
       `Connected to the ${mongoose.connection.db.databaseName} database`,
     );
