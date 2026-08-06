@@ -26,28 +26,39 @@ const server = http.createServer(app);
 
 const allowedOrigins = [
   process.env.FRONTENDURL,
-  process.env.BACKENDURL,                                // backend's own origin (production)
+  process.env.BACKENDURL,
   "https://mihisara-grocery-ecommerce.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
-  "http://localhost:5000",                               // rider tracker page is served from here
+  "http://localhost:5000",
   "http://127.0.0.1:5000",
 ].filter(Boolean);
 
 const corsOptions = {
   origin(origin, callback) {
-    // Allow Postman and server-to-server requests with no Origin header
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log("Blocked by CORS:", origin);
-      callback(new Error("Not allowed by CORS"));
-    }
+    // Allow requests with no Origin (Postman, server-to-server)
+    if (!origin) return callback(null, true);
+
+    // Allow explicitly listed origins
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+
+    // Dynamically allow the backend's own origin at runtime
+    // This handles Render/Railway/Fly where the URL isn't known at build time
+    const backendHost = process.env.RENDER_EXTERNAL_URL || process.env.BACKENDURL;
+    if (backendHost && origin === backendHost) return callback(null, true);
+
+    console.log("Blocked by CORS:", origin);
+    callback(new Error("Not allowed by CORS"));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
+
+// Open CORS for tracking routes — rider tracker page is served FROM this backend,
+// so its fetch requests always originate from the backend's own URL.
+const openCors = cors({ origin: true, credentials: true });
+
 
 const io = new Server(server, {
   cors: {
@@ -109,7 +120,7 @@ app.use("/api/delivery", deliveryRouter);
 app.use("/api/faqs", faqRouter);
 app.use("/api/orders", orderRouter);
 app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/tracking", trackingRouter);
+app.use("/api/tracking", openCors, trackingRouter);
 app.use("/api/payment", paymentRouter);
 app.use("/api/chat", chatRouter);
 
