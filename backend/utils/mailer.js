@@ -2,15 +2,28 @@ import nodemailer from "nodemailer";
 
 const buildTransporter = () => {
   const user = process.env.MAIL_USER?.trim();
-  const pass = process.env.MAIL_PASS?.trim();
+  let pass = process.env.MAIL_PASS?.trim();
+
+  if (pass) {
+    // Strip spaces from Google App Password (e.g., "xxxx xxxx xxxx xxxx" -> "xxxxxxxxxxxxxxxx")
+    pass = pass.replace(/\s+/g, "");
+  }
 
   if (!user || !pass) {
-    throw new Error("Email is not configured. Set MAIL_USER and MAIL_PASS in backend/.env.");
+    throw new Error("Email is not configured. Please set MAIL_USER and MAIL_PASS in backend environment variables.");
   }
 
   return nodemailer.createTransport({
-    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 465,
+    secure: true,
     auth: { user, pass },
+    tls: {
+      rejectUnauthorized: false,
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 15000,
+    socketTimeout: 15000,
   });
 };
 
@@ -22,14 +35,22 @@ const stripHtml = (html = "") =>
     .trim();
 
 export async function sendMail({ to, subject, html, text }) {
-  const from = process.env.MAIL_USER?.trim();
+  const user = process.env.MAIL_USER?.trim();
   const transporter = buildTransporter();
 
-  return transporter.sendMail({
-    from,
-    to,
-    subject,
-    html,
-    text: text || stripHtml(html),
-  });
+  try {
+    const info = await transporter.sendMail({
+      from: `"Mihisara Grocery" <${user}>`,
+      to,
+      subject,
+      html,
+      text: text || stripHtml(html),
+    });
+    console.log("Email sent successfully to:", to, "Message ID:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Failed to send email to:", to, "Error:", error);
+    throw error;
+  }
 }
+
