@@ -26,9 +26,12 @@ const server = http.createServer(app);
 
 const allowedOrigins = [
   process.env.FRONTENDURL,
+  process.env.BACKENDURL,                                // backend's own origin (production)
   "https://mihisara-grocery-ecommerce.vercel.app",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "http://localhost:5000",                               // rider tracker page is served from here
+  "http://127.0.0.1:5000",
 ].filter(Boolean);
 
 const corsOptions = {
